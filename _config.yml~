@@ -1,0 +1,10 @@
+baseurl:
+url: "http://tech.imcczy.com"
+name: imcczy
+author: imcczy
+email: imcczyh@gmail.com
+permalink: :title.html
+markdown: kramdown
+
+JB :
+  categories_path: categories.html
