@@ -8,15 +8,11 @@ lnmp是一系列的开源软件所组成的服务器环境安装包，取自linu
 
 **安装mysql:**
 
-```
-sudo apt-get install mysql-server
-```
+    sudo apt-get install mysql-server
 
 安装过程中会要求输入root密码,输入即可。安装完成后执行
 
-```
-sudo mysql_secure_installation
-```
+    sudo mysql_secure_installation
 
 按提示操作即可。建议禁止root远程登入。
 
@@ -24,34 +20,27 @@ sudo mysql_secure_installation
 
 Nginx ("engine x") 是一个高性能的 HTTP 和 反向代理 服务器，由一家俄罗斯公司开发。具体请百度百科。
 
-```
-sudo apt-get install nginx
-```
+    sudo apt-get install nginx
+
 
 **安装php:**
 
-```
-sudo apt-get install php5-fpm php5-mysql
-```
+    sudo apt-get install php5-fpm php5-mysql
 
 至此所有安装完成。
 
 **启动nginx:**
 
-```
-sudo service nginx start
-```
+    sudo service nginx start
+
 这一步若提示[emerg] bind() to 0.0.0.0:80 failed (98:address already in use ),一般是80端口被apache占用所致，杀死所有apache进程：
 
-```
-sudo killall apache2
-```
+
+    sudo killall apache2
 
 关闭apache的开机启动：
 
-```
-sudo update-rc.d -f apache2 remove
-```
+    sudo update-rc.d -f apache2 remove
 
 在浏览器里访问你的IP,出现Welcome to Nginx，则说明nginx启动成功。
 
@@ -59,29 +48,22 @@ sudo update-rc.d -f apache2 remove
 
 nginx的配置文件在/etc/nginx/nginx.conf，具体设置请参考[Nginx战斗准备 —— 优化指南](http://blog.jobbole.com/51861/)。注意到这个其中的两行：
 
-```
-include /etc/nginx/conf.d/*.conf;
-include /etc/nginx/sites-enabled/;
-```
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/;
 
 nginx下的一个虚拟主机就相当于一个网站，每个虚拟主机的配置文件保存在上面两条路径。为了便于管理，我都是在/etc/nginx/conf.d/下新建conf配置文件。打开nginx的默认配置文件，修改使其支持php：
 
-```
-sudo nano /etc/nginx/sites-enable/default
-```
+    sudo nano /etc/nginx/sites-enable/default
 
 找到server模块，按下修改：
 
-```
-root /usr/share/nginx/www;#网站根目录
-index index.php index.html index.htm;
-server_name your_IP_address;
-```
+    root /usr/share/nginx/www;#网站根目录
+    index index.php index.html index.htm;
+    server_name your_IP_address;
 
 往下找到location ~ .php$ ，去掉部分注释：
 
-```
-location ~ .php$ {
+    location ~ .php$ {
 		fastcgi_split_path_info ^(.+.php)(/.+)$;
 	#	# NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
 	#
@@ -92,35 +74,27 @@ location ~ .php$ {
 		fastcgi_index index.php;
 		include fastcgi_params;
 	}
-```
 
 保存修改退出，并重启nginx：
 
-```
-sudo service nginx restart
-```
+    sudo service nginx restart
 
 新建一个phpinfo.php:
 
-```
-sudo nano /usr/share/nginx/www/phpinfo.php
-```
+    sudo nano /usr/share/nginx/www/phpinfo.php
 
 输入：
 
-```
-<;?php phpinfo(); ?>;
-```
+ 
+    <;?php phpinfo(); ?>;
 
 保存退出，浏览器访问ipaddress/phpinfo.php，能正常显示php5-fpm的配置信息说明lnmp环境就搭好了。
 
 **建议安装phpmyadmin:**
 
-```
-sudo apt-get install phpmyadmin
-sudo ln -s /usr/share/phpmyadmin/ /usr/share/nginx/www 
-sudo service nginx reatsrt
-```
+    sudo apt-get install phpmyadmin
+    sudo ln -s /usr/share/phpmyadmin/ /usr/share/nginx/www 
+    sudo service nginx reatsrt
 
 安装过程中会提示输入mysql密码和设置root登录密码，安装完成访问ipaddress/phpmyadmin，进行管理数据库。
 
@@ -128,9 +102,7 @@ sudo service nginx reatsrt
 
 复制/etc/nginx/sites-enable/default到/etc/nginx/conf.d/*.conf：
 
-```
-sudo cp /etc/nginx/sites-enable/default /etc/nginx/conf.d/*.conf
-```
+    sudo cp /etc/nginx/sites-enable/default /etc/nginx/conf.d/*.conf
 
 视情况修改IP和网站根目录，可参考[http://www.nginx.cn/doc/example/virtualhost.html](http://www.nginx.cn/doc/example/virtualhost.html)
 [http://www.nginx.cn/doc/example/virtualhost.html](http://www.nginx.cn/doc/example/virtualhost.html)
