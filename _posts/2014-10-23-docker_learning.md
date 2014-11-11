@@ -7,7 +7,7 @@ categories: Server
 感觉docker真是很好玩啊，要是玩得转，部署任何应用很方便。这几天看了[The docker book](http://www.dockerbook.com/)。把博客[blog.imcczy.com](blog.imcczy.com)部署到了docker容器上。
 
 一些docker的参数命令：
-
+    
     --name 指定容器名字。
     -d 后台运行
     docker ps 显示容器
