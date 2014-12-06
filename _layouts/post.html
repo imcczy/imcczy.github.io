@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1.0" />
 <meta name="robots" content="all" />
 <title>{{ page.title }}</title>
-<link rel="stylesheet" type="text/css" href="http://site-imcczy.b0.upaiyun.com/techimcczy/style.css" />
-<link rel="stylesheet" type="text/css" href="http://site-imcczy.b0.upaiyun.com/techimcczy/site.css" />
+<link rel="stylesheet" type="text/css" href="/css/style.css" />
+<link rel="stylesheet" type="text/css" href="/css/site.css" />
 <link href="http://cdn.bootcss.com/highlight.js/8.2/styles/solarized_dark.min.css" rel="stylesheet">
 <!--[if (lt IE 9) & (!IEMobile)]>
 <link rel="stylesheet" type="text/css" href="/css/ie.css" />
@@ -16,14 +16,13 @@
 <body>
 <div id="nav">
     <ul>
-        <li><a href="http://blog.imcczy.com/">首页</a></li>
         <li><a href="http://imcczy.com">imcczy</a></li>
     </ul>
 </div>
 	<div class="container group">
 		{% include sidebar.html %}
 	</div>
-    <div class="content yue">
+    <div class="post yue">
          <div id="main">
         <h1>{{ page.title }}</h1>
         <span class="post-meta"><a href="{{ site.url}}">{{ site.author }}</a> {{ page.date | date: "%Y年 %m月 %d日" }}</span>

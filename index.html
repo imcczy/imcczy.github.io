@@ -1,14 +1,16 @@
 ---
 layout: default
-title: imcczy
+title: 知 涯
 ---
-<div class="category-archive archive-page">
-
-{% for category in site.categories %} 
-  <h3 id="{{ category[0] }}-ref">{{ category[0] | join: "/" }}</h3>
-  <ul>
-    {% assign pages_list = category[1] %}  
-    {% include JB/pages_list %}
-  </ul>
+<div class="yearly-archive archive-page">
+{% for post in site.posts %}
+{% unless post.next %}<h2>{{ post.date | date: '%Y' }}</h2>
+{% else %}
+{% capture year %}{{ post.date | date: '%Y' }}{% endcapture %}
+{% capture nyear %}{{ post.next.date | date: '%Y' }}{% endcapture %}
+{% if year != nyear %}<h2>{{ post.date | date: '%Y' }}</h2>
+{% endif %}
+{% endunless %}<p><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a> <span class='category-tag'>[{{ post.categories }}]</span><span class='date'>{{post.date | date: "%m月 %d日"}}</span></p>
 {% endfor %}
+ </div> 
 </div>
