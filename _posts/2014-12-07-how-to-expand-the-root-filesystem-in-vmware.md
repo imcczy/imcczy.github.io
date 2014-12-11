@@ -168,6 +168,7 @@ categories: Linux
 
 交换分区挂载需要UUID标识符。创建新的交换分区不会比配旧的UUID，重启的时候就没有swap可用了。这里主要有两种解决方法：在/etc/fstab里写入新的UUID，或者直接将旧的UUID用在新分区上，这里选择后者。
 awk命令用来显示旧的UUID，dd命令确保分区没数据。
+
     cruz@ubuntu:~$ sudo bash
     [sudo] password for cruz: 
     root@ubuntu:~#  awk '/swap/ { print $1 }' /etc/fstab
