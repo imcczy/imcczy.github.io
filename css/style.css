@@ -24,7 +24,7 @@ table                            { border-collapse: collapse; border-spacing: 0;
 
 td                            { vertical-align: top; }
 /* 02e - Links */
-a                           { color:#666; }
+a                           { color:#666; font-weight:normal;}
 a:hover {color:#9c6}
 
 

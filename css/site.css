@@ -309,15 +309,6 @@ html,body {
     clear: both
 }
 
-a {
-    color: #434344;
-    -webkit-transition: all .25 ease-in;
-    transition: all .25 ease-in
-}
-
-a:hover {
-    opacity: .8
-}
 #main {
     padding: 0px 0
 }
