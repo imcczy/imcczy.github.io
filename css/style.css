@@ -44,7 +44,6 @@ position: fixed;
 left: 0;
 top: 0;;}
 .primary {font-size: 1.4em;}
-.primary a {color: #666;font-weight: normal;}
 .primary nav {font-size: 14px;text-decoration: underline;}
 .primary h1 { color:rgba(0,0,0,0.3);font-size: 36px;margin-left: 40px; margin-bottom: 0px;}
 div.primary div div         { border-top:1px solid rgba(0,0,0,0.05); padding:3em 0; }
