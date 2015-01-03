@@ -21,6 +21,7 @@ categories: Server
 
 ###把typecho部署到docker容器上
 看了官方wordpress镜像的Dockerfile，发现用的多是lamp，可是apache不熟，而且网站目录都是在image里内建的，不适合typecho。只好自己动手了。用的还是nginx，主要用到两个docker镜像：
+
 > mysql数据库镜像
 nginx-php镜像
 
