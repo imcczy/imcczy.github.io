@@ -341,7 +341,7 @@ html,body {
         font-size: 24px
     }
 }
-.yue .previous-next-nav {overflow: hidden;*zoom:1;}
+.yue .previous-next-nav {overflow: hidden;*zoom:1;margin-top: 36px;}
 .yue .previous {float:left;}
 .yue .next {float:right;}
 .yue .post-meta {color:rgba(0,0,0,0.4);display: block;margin-bottom: 1em;}
