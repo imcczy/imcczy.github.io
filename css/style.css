@@ -38,7 +38,7 @@ a:hover {color:#9c6}
   /* 04 Basic Layout --------------------------------------------------------------------------------------------- */
   div.container {line-height: 1.5;
 width: 24%;
-
+max-width: 320px;
 height: 100%;
 position: fixed;
 left: 0;
@@ -98,6 +98,10 @@ border-right: 0 none;
 #nav ul li { display: inline-block;}
 .archive-page {font-size: 14px;}
 .archive-page h3 {color: rgba(0,0,0,0.3);font-size: 2em;margin: 10px 0;}
+}
+@media all and (min-width:1377px){
+div.bodycenter{width:1376px;margin:0 auto;}
+ div.container {width: 320px;left:inherit;}
 }
 @media all and (min-width:800px) {
   div.container { background: #f6f6f6;}

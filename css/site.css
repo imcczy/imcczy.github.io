@@ -297,7 +297,6 @@ html,body {
 }
 
 .container {
-    max-width: 320px;
     *width: 650px;
     margin: 0 auto;
     zoom: 1
