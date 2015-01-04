@@ -99,8 +99,8 @@ border-right: 0 none;
 .archive-page {font-size: 14px;}
 .archive-page h3 {color: rgba(0,0,0,0.3);font-size: 2em;margin: 10px 0;}
 }
-@media all and (min-width:1377px){
-div.bodycenter{width:1376px;margin:0 auto;}
+@media all and (min-width:1441px){
+div.bodycenter{width:1440px;margin:0 auto;}
  div.container {width: 320px;left:inherit;}
 }
 @media all and (min-width:800px) {
