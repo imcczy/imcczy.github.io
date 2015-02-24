@@ -80,7 +80,7 @@ div.ads                     { display:block; }
   .archive-page span.category-tag {color:rgba(0,0,0,0.3);}
 
 #nav { display: none;}
-.tag-box {list-style: none; font-size: 16px;line-height: 1.6;}
+.tag-box {list-style: none; font-size: 16px;line-height: 2.3;}
 .tag-box a {text-decoration: none;}
 .tag-box .cat-name {display: inline-block; width: 60%;}
 .tag-box .cat-number {display: inline-block; width: 30%;}
