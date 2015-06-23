@@ -5,37 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1.0" />
 <meta name="robots" content="all" />
 <title>{{ page.title }}</title>
-<link rel="stylesheet" type="text/css" href="/css/style.css" />
 <link rel="stylesheet" type="text/css" href="/css/site.css" />
-<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/solarized_dark.min.css" rel="stylesheet">
+<link href="http://cdn.bootcss.com/highlight.js/8.6/styles/mono-blue.min.css" rel="stylesheet">
 <!--[if (lt IE 9) & (!IEMobile)]>
 <link rel="stylesheet" type="text/css" href="/css/ie.css" />
 <![endif]-->
 </head>
-{% include ga.html %}
+<!--{% include ga.html %}-->
 <body>
-<div class = "bodycenter">
-<div id="nav">
-    <ul>
-        <li><a href="http://imcczy.com">首页</a></li>
-        <li><a href="http://imcczy.com/about.html">About</a></li>
-    </ul>
-</div>
-	<div class="container group">
-		{% include sidebar.html %}
-	</div>
-    <div class="post yue">
-         <div id="main">
-        <h1>{{ page.title }}</h1>
-        <span class="post-meta"><a href="{{ site.url}}">{{ site.author }}</a> {{ page.date | date: "%Y年 %m月 %d日" }}</span>
-        {{ content }}
-        <p class='previous-next-nav'><a href="{{page.next.url}}" class="next">{{page.next.title}} &rarr;</a>
-        <a href="{{page.previous.url}}" class="previous">&larr; {{page.previous.title}}</a>
-        </p>
-        {% include discus.html %}
+<div class = "yue">
+<header id="header">
+    <div class="container yue">
+      <a id="brand" role="banner" href="/">
+      <strong>imcczy</strong>
+      </a>
+      <nav id="nav" role="navigation">
+          <a href="/about.html">About</a>
+      </nav>
     </div>
+  </header>
+<div class="container">
+    <div id="main">
+    <h1>{{ page.title }}</h1>
+<div class="post-time">
+    <span class="post-meta">{{ page.date | date: "%B %d, %Y" }}</span>
 </div>
-<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+    {{ content }}
+<div id="fb_comments_container">
+    {% include duoshuo.html %}
+</div>
+</div>
+</div>
+<script src="http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 </div>
 </body>

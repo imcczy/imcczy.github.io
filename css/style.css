@@ -71,7 +71,7 @@ div.ads                     { display:block; }
 .primary  small { position: absolute; bottom: 1%;left:36px;font-size:12px}
 .primary  small a {color:#000}
 
-    .archive-page a {text-decoration: none;}
+    .archive-page a {text-decoration: none;color: #000}
     .archive-page p,
   .archive-page li {list-style:none;}
   .archive-page h2 {color:rgba(0,0,0,0.3);font-size: 3.2em;margin:0 0 0;line-height: 1.2;}
@@ -89,9 +89,10 @@ div.ads                     { display:block; }
   div.container {display:none;}
   div.content {padding: 0 18px;}
   div.post{padding: 0 18px;}
- #nav { width: 90%; margin: 0 auto; float: none; display: inherit;margin-left: 10px;}
+#nav { width: 90%; margin: 0 auto; float: none; display: inherit;margin-left: 10px;}
 #nav ul { padding: 0; text-align: left;margin-left: 10px;}
 #nav ul small { display: none;margin-left: 10px;}
+#nav a{color: #9c6}
 #nav li:last-child {
 border-right: 0 none;
 }
