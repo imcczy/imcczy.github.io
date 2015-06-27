@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "VMware下扩展ubuntu虚拟机根目录分区"
+title:  "VMware下扩展ubuntu虚拟机根目录分区--test"
 date:   2014-12-07 00:13:40
 categories: Linux
 ---
