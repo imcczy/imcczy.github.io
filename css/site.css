@@ -3,6 +3,9 @@
     color: #444443
 }
 
+.highlight {
+    font-family:monospace
+}
 .windows .yue {
     font-size: 16px;
     font-family: Georgia,SimSun,sans-serif
@@ -309,10 +312,6 @@ a.button:hover {
 
 
 @media (min-width: 980px) {
-    .highlight {
-        margin:0 -30px
-    }
-
     .yue .cite-quote {
         text-align: center;
         margin: 36px -60px;
