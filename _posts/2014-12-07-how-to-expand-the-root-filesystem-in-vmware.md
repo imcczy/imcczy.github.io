@@ -143,6 +143,7 @@ Using default value 31457279
 ```
 
 注意记得创建交换分区，大小别搞错，这里是1046528。修改sda2的分区类型为82，即交换分区。
+
 ```bash
 Command (m for help): p
  
@@ -196,7 +197,7 @@ Mem:           992        695        296          0         23        325
 -/+ buffers/cache:        346        645
 Swap:            0          0          0
 root@ubuntu:~# dd if=/dev/zero of=/dev/sda2
-dd: writing to `/dev/sda2': No space left on device
+dd: writing to '/dev/sda2': No space left on device
 1046529+0 records in
 1046528+0 records out
 535822336 bytes (536 MB) copied, 11.9388 s, 44.9 MB/s
