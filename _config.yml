@@ -4,7 +4,8 @@ name: imcczy
 author: imcczy
 email: imcczyh@gmail.com
 permalink: :title.html
-markdown: kramdown
-
+markdown: redcarpet
+redcarpet:
+  extensions: [fenced_code_blocks]
 JB :
   categories_path: categories.html
