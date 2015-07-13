@@ -16,7 +16,7 @@ sudo apt-get install mysql-server
 
 ```bash
 sudo mysql_secure_installation
-```bash
+```
 
 按提示操作即可。建议禁止root远程登入。
 
@@ -26,7 +26,7 @@ Nginx ("engine x") 是一个高性能的 HTTP 和 反向代理 服务器，由�
 
 ```bash
 sudo apt-get install nginx
-```bash
+```
 
 **安装php:**
 
