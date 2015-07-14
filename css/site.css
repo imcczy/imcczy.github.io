@@ -318,7 +318,7 @@ a.button:hover {
         font-size: 24px
     }
 }
-@media (max-width: 800px) {
+@media (max-width: 650px) {
   
     .yue {
         word-break: break-all
@@ -411,8 +411,8 @@ body {
 #header a {
     color: #444;
     font-family: "Avenir Next",Avenir,"Helvetica Neue",sans-serif;
-    text-decoration: none
     margin-left: 15px;
+    text-decoration: none
 }
 
 #header a:hover {
