@@ -49,7 +49,7 @@ Device Boot      Start         End      Blocks   Id  System
 root@ubuntu:~# 
 ```
 
-记住上面显示的交换分区大小（Blocks的数目），这里就是1046528。如果交换分区和根目录不在一个磁盘(比如/dev/sdb），就不要记了。在本文，交换分区在/dev/sda，需要重新设置。
+记住上面显示的交换分区大小（Blocks的数目），这里就是1046528。如果交换分区和根目录不在一个磁盘(比如/dev/sdb），就不要记了。在本文，交换分区在/dev/sda，需要重新分区。
 
 ####先关闭linux：
 
@@ -57,9 +57,9 @@ root@ubuntu:~#
 root@ubuntu:~# shutdown -h now
 ```
 
-在虚拟机设置，硬盘，实用工具下选择扩展。重新设置虚拟机的最大磁盘大小。重启。
+在虚拟机设置，硬盘，实用工具下选择扩展。扩展虚拟机的最大磁盘大小，这里将磁盘设置为15G，然后重启。
 
-重新设置分区表要删除所有的旧分区，需要关闭系统的swap:
+重新设置分区表要删除所有的旧分区、关闭系统的swap:
 
 ```bash
 cruz@ubuntu:~$ sudo bash
@@ -116,7 +116,7 @@ Disk identifier: 0x00001dec
 Command (m for help): 
 ```
 
-**不要退出fdisk，创建新分区**
+**不要退出fdisk，接着创建新分区**
 
 ```bash
 Command (m for help): n
@@ -142,7 +142,7 @@ Last sector, +sectors or +size{K,M,G} (30410752-31457279, default 31457279):
 Using default value 31457279
 ```
 
-注意记得创建交换分区，大小别搞错，这里是1046528。修改sda2的分区类型为82，即交换分区。
+注意记得创建交换分区，大小别搞错，这里是1046528（31457279-30410571=1046528），即要留一部分block用于创建swap。修改sda2的分区类型为82，即交换分区。
 
 ```bash
 Command (m for help): p
@@ -181,7 +181,7 @@ root@ubuntu:~#
 root@ubuntu:~# shutdown -r now
 ```
 
-交换分区挂载需要UUID标识符。创建新的交换分区不会比配旧的UUID，重启的时候就没有swap可用了。这里主要有两种解决方法：在/etc/fstab里写入新的UUID，或者直接将旧的UUID用在新分区上，这里选择后者。
+交换分区挂载需要UUID标识符。创建新的交换分区不会匹配旧的UUID，导致重启无法挂载swap分区。这里主要有两种解决方法：在/etc/fstab里写入新的UUID，或者直接将旧的UUID覆盖在新分区上，这里选择后者。
 awk命令用来显示旧的UUID，dd命令确保分区没数据。
 
 ```bash
