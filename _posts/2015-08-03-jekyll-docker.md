@@ -4,16 +4,14 @@ title:  "利用Docker构建jekyll自动更新镜像"
 date:   2015-08-03 23:33:40
 categories: Linux
 ---
-#利用Docker构建jekyll自动更新镜像
-
 jekyll博客可以托管在github page上，相当方便。但是github时不时被攻击河蟹，利用github webhook，我们便可将博客同步到其他服务器上。之所以使用docker，一是方便部署，二是可以将博客托管在像Daocloud这样的docker容器平台上。
 
 github webhook的大致原理是，仓库发生指定事件（比如push）时，github会向指定的服务器发送一个post请求，服务器收到请求后再执行相应的指令。实现webhook服务器的方法非常多，比如官方推荐的[Sinatra](http://www.sinatrarb.com/)，其他python和nodejs等都可以实现。这里为了方便构建docker镜像，webhook服务使用nginx+shell+lua，更方便一点我直接使用[openresty](https://openresty.org/)。
 
 使用官方的ruby镜像总有意想不到的情况，所以我们从头开始构建，分为jekyll的安装、openrestry的安装和配置nginx server。
 
-**Dockerfile以及所有的文件在[https://github.com/imcczy/jekyll_docker](https://github.com/imcczy/jekyll_docker)
-**
+####Dockerfile以及所有的文件在[https://github.com/imcczy/jekyll_docker](https://github.com/imcczy/jekyll_docker)
+
 
 ###安装依赖
 
@@ -28,13 +26,14 @@ RUN apt-get update && apt-get install -y supervisor  git curl nodejs \
 ###安装jekyll
 
 jekyll依赖于ruby，ruby的安装参考Ruby China社区的[ wiki](https://ruby-china.org/wiki/install_ruby_guide)，需要注意的几点：
+
 1 安装前需要导入ruby的公钥
 
 ```bash
 RUN　gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
 ```
 
-2 docker构建镜像的时候默认/bin/sh，载入rvm环境和使用gem命令需要使用bash，将RUN命令改成
+2 docker构建镜像的时候默认/bin/sh，载入rvm环境和使用gem命令需要使用bash，将RUN命令改成：
 
 ```bash
 ENV RUBY_VERSION 2.2.1
@@ -73,7 +72,7 @@ RUN wget http://openresty.org/download/ngx_openresty-${OPENRESTY_VERSION}.tar.gz
 
 ```
 
-上面编译安装了luajit，并将openresty安装在/usr/servsers，nginx可执行文件路径为
+上面编译安装了luajit，并将openresty安装在/usr/servsers，nginx可执行文件路径为：
 
 ```bash
 /usr/servers/nginx/sbin/nginx 
@@ -95,7 +94,7 @@ include /usr/servers/conf/*.conf;
 
 我们将nginx server配置存于/usr/servers/conf/*.conf。
 
-方便起见直接将原配置文件覆盖
+方便起见直接将原配置文件覆盖：
 
 ```bash
 RUN rm /usr/servers/nginx/conf/nginx.conf
@@ -104,7 +103,7 @@ ADD nginx.conf /usr/servers/nginx/conf/nginx.conf
 
 **2 添加一个server**
 
-server配置如下，这里webhook的post地址为yourdomian/build
+server配置如下，这里webhook的post地址为yourdomian/build。
 
 ```bash
 #jekyll.conf
@@ -210,4 +209,5 @@ CMD supervisord -c /etc/supervisor/conf.d/supervisord.conf
 Ps：jekyll.lua验证key部分可以不要，相应的在github上设置仓库的webhook也不需要设置key
 
 参考
+
 [利用github webhook自动更新hexo](http://blog.xmost.com/2015/06/use-github-webhooks-to-deploy-hexo/)
