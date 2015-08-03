@@ -2,7 +2,7 @@
 layout: post
 title:  "Ubuntu/Debian安装lnmp"
 date:   2014-10-22 23:20:40
-categories: Server
+categories: Linux
 ---
 lnmp是一系列的开源软件所组成的服务器环境安装包，取自linux，nginx，mysql和php四个单词的首字母。曾经试用过军哥的lnmp一键安装包，安装简单，配置也简单。不过我这种强迫症不喜欢现成的，说实话在这块鼓捣了好久。因为我一直搞不明白nginx的配置。
 
