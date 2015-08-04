@@ -6,7 +6,7 @@ categories: Linux
 ---
 jekyll博客可以托管在github page上，相当方便。但是github时不时被攻击河蟹，利用github webhook，我们便可将博客同步到其他服务器上。之所以使用docker，一是方便部署，二是可以将博客托管在像Daocloud这样的docker容器平台上。
 
-github webhook的大致原理是，仓库发生指定事件（比如push）时，github会向指定的服务器发送一个post请求，服务器收到请求后再执行相应的指令。实现webhook服务器的方法非常多，比如官方推荐的[Sinatra](http://www.sinatrarb.com/)，其他python和nodejs等都可以实现。这里为了方便构建docker镜像，webhook服务使用nginx+shell+lua，更方便一点我直接使用[openresty](https://openresty.org/)。
+github webhook的大致原理是，仓库发生指定事件（比如push）时，github会向指定的服务器发送一个post请求，服务器收到请求后再执行相应的指令。实现webhook服务的方法非常多，比如官方推荐的[Sinatra](http://www.sinatrarb.com/)，其他如python和nodejs等都可以实现。这里为了方便构建docker镜像，webhook服务使用nginx+shell+lua，更方便一点直接使用[openresty](https://openresty.org/)。
 
 使用官方的ruby镜像总有意想不到的情况，所以我们从头开始构建，分为jekyll的安装、openrestry的安装和配置nginx server。
 
@@ -15,7 +15,7 @@ github webhook的大致原理是，仓库发生指定事件（比如push）时�
 
 ###安装依赖
 
-jekyll的额外依赖有nodejs和python2，我在后面使用了supervisior守护nginx进程，可以不用单独安装python。
+jekyll的额外依赖有nodejs和python，我在后面使用了supervisior守护nginx进程，可以不用单独安装python。
 
 ```bash
 RUN apt-get update && apt-get install -y supervisor  git curl nodejs \
@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y supervisor  git curl nodejs \
 
 ###安装jekyll
 
-jekyll依赖于ruby，ruby的安装参考Ruby China社区的[ wiki](https://ruby-china.org/wiki/install_ruby_guide)，需要注意的几点：
+jekyll依赖于ruby，ruby的安装参考Ruby China社区的[wiki](https://ruby-china.org/wiki/install_ruby_guide)，需要注意的几点：
 
 1 安装前需要导入ruby的公钥
 
@@ -103,7 +103,7 @@ ADD nginx.conf /usr/servers/nginx/conf/nginx.conf
 
 **2 添加一个server**
 
-server配置如下，这里webhook的post地址为yourdomian/build。
+server配置如下，这里webhook的post地址为yourdomian/build，该配置需文件存于/usr/servers/conf/。
 
 ```bash
 #jekyll.conf
@@ -128,7 +128,8 @@ server {
 }
 ```
 
-jekyll.lua，前面用于key验证，后面执行build.sh
+jekyll.lua，前面用于key验证，后面执行build.sh。
+Ps：jekyll.lua验证key部分可以不要，相应的在github上设置仓库的webhook也不需要设置key
 
 ```bash
 local signature = ngx.req.get_headers()["X-Hub-Signature"]
@@ -183,6 +184,9 @@ nodaemon=true
 command=/usr/servers/nginx/sbin/nginx -g "daemon off;"
 ```
 
+
+**最后**
+
 将所有配置文件添加到镜像，给build.sh添加执行权限。
 
 ```bash
@@ -197,7 +201,6 @@ RUN chmod +x /usr/servers/conf/build.sh
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ```
 
-**最后**
 最后开放镜像80端口,启动运行supervisor
 
 ```bash
@@ -206,7 +209,6 @@ EXPOSE 80
 CMD supervisord -c /etc/supervisor/conf.d/supervisord.conf
 ```
 
-Ps：jekyll.lua验证key部分可以不要，相应的在github上设置仓库的webhook也不需要设置key
 
 参考
 
