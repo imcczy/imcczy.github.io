@@ -84,10 +84,10 @@ RUN wget http://openresty.org/download/ngx_openresty-${OPENRESTY_VERSION}.tar.gz
 
 nginx的配置文件在/usr/servers/nginx/conf/nginx.conf，需要修改两处
 
-1 为nginx指定一个用户，由于Docker里是root环境，这里我直接指定了root。
-
-2 在配置文件的http段增加：
-
+> 1 为nginx指定一个用户，由于Docker里是root环境，这里我直接指定了root。
+> 
+>  2 在配置文件的http段增加：
+>  
 ```bash
 include /usr/servers/conf/*.conf;
 ```
