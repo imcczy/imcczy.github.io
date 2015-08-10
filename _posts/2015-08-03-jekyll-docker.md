@@ -3,6 +3,7 @@ layout: post
 title:  "利用Docker构建jekyll自动更新镜像"
 date:   2015-08-03 23:33:40
 categories: Linux
+tags: docker
 ---
 jekyll博客可以托管在github page上，相当方便。但是github时不时被攻击河蟹，利用github webhook，我们便可将博客同步到其他服务器上。之所以使用docker，一是方便部署，二是可以将博客托管在像Daocloud这样的docker容器平台上。
 
