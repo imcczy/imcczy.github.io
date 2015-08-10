@@ -3,6 +3,7 @@ layout: post
 title:  "VMware下扩展ubuntu虚拟机根目录分区"
 date:   2014-12-07 00:13:40
 categories: Linux
+tags: vmware
 ---
 原文链接：[http://t.cn/RzCP9E2](http://t.cn/RzCP9E2)
 
