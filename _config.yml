@@ -7,6 +7,8 @@ permalink: :title.html
 markdown: kramdown
 kramdown:
   input: GFM
+  use_coderay: true
+
   coderay:
     coderay_wrap: code
 JB :
