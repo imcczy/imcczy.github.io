@@ -10,6 +10,6 @@ kramdown:
   use_coderay: true
 
   coderay:
-    coderay_wrap: code
+    coderay_wrap: cccc
 JB :
   categories_path: categories.html
