@@ -8,7 +8,7 @@ permalink: /note/buildgdb
 一，
 这里切换到对应NDK的分支
 
-```
+```bash
 git clone https://android.googlesource.com/toolchain/gdb
 git branch -a 
 git checkout -b r12 origin/ndk-r12-release
@@ -37,26 +37,26 @@ make install
 四，
 这里貌似直接把`{ndk}/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/`加到PATH也行。
 
-```
+```bash
 {NDK}/build/tools/make-standalone-toolchain.sh --toolchain=arm-linux-androideabi-4.9 --install-dir=<target_dir> --ndk-dir=<extracted_file_dir>
 
 ```
 五，
 生成makefile，--target是目标程序，--host是gdbserver运行的平台
 
-```
+```bash
 CC=arm-linux-androideabi-gcc ./configure --target=arm-linux-androideabi --host=arm-linux-androideabi --prefix=<result_absolute_path>
 ```
 完了直接make会报错：
 类似这样
 
-```
+```bash
 linux-low.c:5227:15: error: 'Elf64_auxv_t' undeclared (first use in this function)
      ? sizeof (Elf64_auxv_t) : sizeof (Elf32_auxv_t);
 ```
 这里还没找到好的解决方法，直接暴力修改gsbserver目录下的config.in文件，注释掉下面两行：
 
-```
+```cpp
 /* Define to 1 if the system has the type `Elf32_auxv_t'. */
 /*#undef HAVE_ELF32_AUXV_T*/
 
