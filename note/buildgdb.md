@@ -1,7 +1,7 @@
 ---
 layout: note
 title: MAC下编译gdb&gdbserver for android
-permalink: /txt/buildgdb
+permalink: /note/buildgdb
 ---
 
 
