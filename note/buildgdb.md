@@ -1,10 +1,9 @@
 ---
-layout: post
+layout: note
 title: MAC下编译gdb&gdbserver for android
 permalink: /txt/buildgdb
 ---
 
-#MAC下编译gdb&gdbserver for android
 
 一，
 这里切换到对应NDK的分支

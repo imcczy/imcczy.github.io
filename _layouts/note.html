@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta content="width=device-width, initial-scale=1,maximum-scale=1.0" name="viewport"/>
+        <meta content="all" name="robots"/>
+        <title>
+            {{ page.title }}
+        </title>
+        <link href="/css/noet.css" rel="stylesheet" type="text/css"/>
+            <!--[if (lt IE 9) & (!IEMobile)]>
+<link rel="stylesheet" type="text/css" href="/css/ie.css" />
+<![endif]-->
+        </link>
+    </head>
+    {% include ga.html %}
+    <body>
+        <div class="yue">
+        <!--
+            <header id="header">
+                <div class="container yue">
+                    <a href="/" id="brand" role="banner">
+                        <strong>
+                            imcczy
+                        </strong>
+                    </a>
+                    <nav id="nav" role="navigation">
+                        <a href="/about.html">
+                            About
+                        </a>
+                    </nav>
+                </div>
+            </header>
+            -->
+            <div class="note-content">
+                <div id="main">
+                    <h1>
+                        {{ page.title }}
+                    </h1>
+                    {{ content }}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
