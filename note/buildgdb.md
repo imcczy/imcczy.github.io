@@ -7,6 +7,7 @@ permalink: /note/buildgdb
 
 一，
 这里切换到对应NDK的分支
+
 ```
 git clone https://android.googlesource.com/toolchain/gdb
 git branch -a 
