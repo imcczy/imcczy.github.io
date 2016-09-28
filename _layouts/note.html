@@ -7,7 +7,8 @@
         <title>
             {{ page.title }}
         </title>
-        <link href="/css/note.css" rel="stylesheet" type="text/css"/>
+        <link href="/css/site.css" rel="stylesheet" type="text/css"/>
+        <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
             <!--[if (lt IE 9) & (!IEMobile)]>
 <link rel="stylesheet" type="text/css" href="/css/ie.css" />
 <![endif]-->
@@ -15,7 +16,8 @@
     </head>
     {% include ga.html %}
     <body>
-        <!--
+        <div class="yue">
+            <!--
             <header id="header">
                 <div class="container yue">
                     <a href="/" id="brand" role="banner">
@@ -31,11 +33,19 @@
                 </div>
             </header>
             -->
-            <div class="note-content">
+            <div class="contenter">
+                <div id="main">
                     <h1>
                         {{ page.title }}
                     </h1>
                     {{ content }}
+                </div>
             </div>
+            <script src="http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js">
+            </script>
+            <script>
+                hljs.initHighlightingOnLoad();
+            </script>
+        </div>
     </body>
 </html>
