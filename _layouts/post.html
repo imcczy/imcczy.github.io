@@ -1,44 +1,57 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1.0" />
-<meta name="robots" content="all" />
-<title>{{ page.title }}</title>
-<link rel="stylesheet" type="text/css" href="/css/site.css" />
-<link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
-<!--[if (lt IE 9) & (!IEMobile)]>
+    <head>
+        <meta charset="utf-8"/>
+        <meta content="width=device-width, initial-scale=1,maximum-scale=1.0" name="viewport"/>
+        <meta content="all" name="robots"/>
+        <title>
+            {{ page.title }}
+        </title>
+        <link href="/css/site.css" rel="stylesheet" type="text/css"/>
+        <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+            <!--[if (lt IE 9) & (!IEMobile)]>
 <link rel="stylesheet" type="text/css" href="/css/ie.css" />
 <![endif]-->
-</head>
-{% include ga.html %}
-<body>
-<div class = "yue">
-<header id="header">
-    <div class="container yue">
-      <a id="brand" role="banner" href="/">
-      <strong>imcczy</strong>
-      </a>
-      <nav id="nav" role="navigation">
-          <a href="/about.html">About</a>
-      </nav>
-    </div>
-  </header>
-<div class="container">
-    <div id="main">
-    <h1>{{ page.title }}</h1>
-<div class="post-time">
-    <span class="post-meta">{{ page.date | date: "%B %d, %Y" }} | {{ page.tags }}</span>
-</div>
-    {{ content }}
-<div id="fb_comments_container">
-    {% include duoshuo.html %}
-</div>
-</div>
-</div>
-<script src="http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-</div>
-</body>
+        </link>
+    </head>
+    {% include ga.html %}
+    <body>
+        <div class="yue">
+            <header id="header">
+                <div class="container yue">
+                    <a href="/" id="brand" role="banner">
+                        <strong>
+                            imcczy
+                        </strong>
+                    </a>
+                    <nav id="nav" role="navigation">
+                        <a href="/about.html">
+                            About
+                        </a>
+                    </nav>
+                </div>
+            </header>
+            <div class="container">
+                <div id="main">
+                    <h1>
+                        {{ page.title }}
+                    </h1>
+                    <div class="post-time">
+                        <span class="post-meta">
+                            {{ page.date | date: "%B %d, %Y" }} | {{ page.tags }}
+                        </span>
+                    </div>
+                    {{ content }}
+                    <div id="fb_comments_container">
+                        {% include duoshuo.html %}
+                    </div>
+                </div>
+            </div>
+            <script src="http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js">
+            </script>
+            <script>
+                hljs.initHighlightingOnLoad();
+            </script>
+        </div>
+    </body>
 </html>
-

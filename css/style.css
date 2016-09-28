@@ -1,125 +1,378 @@
-a {text-decoration: none;}
-article,
-aside,
-details,
-figcaption,
-figure,
-header,
-hgroup,
-nav,
-section                         { display: block; }
-html                           { font-family:'Open Sans','Helvetica Neue',Arial,'Hiragino Sans GB','Microsoft YaHei','WenQuanYi Micro Hei',sans-serif;}
-body                           { margin: 0;}
-a img {border:0 none;}
-.index h1, h2, h3, h4, h5, h6 { font-weight:normal; font-family: helveticaneue-light, arial, sans-serif;}
-input,
-select,
-textarea                          { font-size: 100%; margin: 0; vertical-align: baseline; *vertical-align: middle; }
-button,
-input                            { line-height: normal; *overflow: visible; }
+a {
+    text-decoration: none;
+}
 
-textarea                          { overflow: auto; vertical-align: top; resize: vertical; }
+article, aside, details, figcaption, figure, header, hgroup, nav, section {
+    display: block;
+}
 
-table                            { border-collapse: collapse; border-spacing: 0; }
+html {
+    font-family: 'Open Sans', 'Helvetica Neue', Arial, 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
+}
 
-td                            { vertical-align: top; }
+body {
+    margin: 0;
+}
+
+a img {
+    border: 0 none;
+}
+
+.index h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+    font-family: helveticaneue-light, arial, sans-serif;
+}
+
+input, select, textarea {
+    font-size: 100%;
+    margin: 0;
+    vertical-align: baseline;
+    *vertical-align: middle;
+}
+
+button, input {
+    line-height: normal;
+    *overflow: visible;
+}
+
+textarea {
+    overflow: auto;
+    vertical-align: top;
+    resize: vertical;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+td {
+    vertical-align: top;
+}
+
+
 /* 02e - Links */
-a                           { color:#666; font-weight:normal;}
-a:hover {color:#9c6}
+
+a {
+    color: #666;
+    font-weight: normal;
+}
+
+a:hover {
+    color: #9c6
+}
 
 
-   /* ----------------------------------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------------------------------------
   08 Blog Archive ---------------------------------------------------------------------------------------------
   ---------------------------------------------------------------------------------------------------------- */
-#nav { padding: 20px 0; border-bottom: 2px solid #f2f2f2; width: 100px; float: right;}
-#nav ul{ padding: 0 5%; text-align: right;}
-#nav li{padding-right: 10px;margin-right: 6px;border-right: 1px solid #666;}
-#nav a{ font-size: 16px;color: #666;text-decoration: underline;}
-  /* 04 Basic Layout --------------------------------------------------------------------------------------------- */
-  div.container {line-height: 1.5;
-width: 24%;
-max-width: 320px;
-height: 100%;
-position: fixed;
-left: 0;
-top: 0;;}
-.primary {font-size: 1.4em;}
-.primary nav {font-size: 14px;text-decoration: underline;}
-.primary h1 { color:rgba(0,0,0,0.3);font-size: 36px;margin-left: 40px; margin-bottom: 0px;}
-div.primary div div         { border-top:1px solid rgba(0,0,0,0.05); padding:3em 0; }
-div.ads                     { display:block; }
-.primary p                   { margin-left: 40px;font-size: 14px;margin-top: 0px;}
-    div.ads span                { display:block;  }
-    header nav ul li            { display:block; padding:0; }
-    form input,
-    form textarea               { margin-left:5%; }
-    article figure figcaption   { padding-left:5%; }
 
-    div#comments ol li article header div.gravatar-container { left:5%; }
-    div#comments ol li article header h3,
-    div#comments ol li article header h3 + p { padding:0 0 0 20%; }
-    
-  p.copyright,
-  div.primary h2,
-  div.primary p,
-  div.primary span.fusionentire { color:rgba(0,0,0,0.3);}
-  p.note                      { padding-bottom:1em; }
-  p.continue                  { padding-top:2em; }
-  p.copyright               { padding:8em 0 1em 0; text-align: center;position: relative;}
-  cite                        { font-style:normal; }
-
-.primary  small { position: absolute; bottom: 1%;left:36px;font-size:12px}
-.primary  small a {color:#000}
-
-    .archive-page a {text-decoration: none;color: #000}
-    .archive-page p,
-  .archive-page li {list-style:none;}
-  .archive-page h2 {color:rgba(0,0,0,0.3);font-size: 3.2em;margin:0 0 0;line-height: 1.2;}
-  .archive-page h3 {color:rgba(0,0,0,0.3);font-size: 2em;margin: 10px 0;}
-  .archive-page span.date                    { color:rgba(0,0,0,0.3); display:block; }
-  .archive-page span.category-tag {color:rgba(0,0,0,0.3);}
-
-#nav { display: none;}
-.tag-box {list-style: none; font-size: 16px;line-height: 2.3;}
-.tag-box a {text-decoration: none;}
-.tag-box .cat-name {display: inline-block; width: 60%;}
-.tag-box .cat-number {display: inline-block; width: 30%;}
-
- @media all and (max-width:799px) {
-  div.container {display:none;}
-  div.content {padding: 0 18px;}
-  div.post{padding: 0 18px;}
-#nav { width: 90%; margin: 0 auto; float: none; display: inherit;margin-left: 10px;}
-#nav ul { padding: 0; text-align: left;margin-left: 10px;}
-#nav ul small { display: none;margin-left: 10px;}
-#nav a{color: #9c6}
-#nav li:last-child {
-border-right: 0 none;
+#nav {
+    padding: 20px 0;
+    border-bottom: 2px solid #f2f2f2;
+    width: 100px;
+    float: right;
 }
-#nav ul li { display: inline-block;}
-.archive-page {font-size: 14px;}
-.archive-page h3 {color: rgba(0,0,0,0.3);font-size: 2em;margin: 10px 0;}
+
+#nav ul {
+    padding: 0 5%;
+    text-align: right;
 }
-@media all and (min-width:1441px){
-div.bodycenter{width:1440px;margin:0 auto;}
- div.container {width: 320px;left:inherit;}
+
+#nav li {
+    padding-right: 10px;
+    margin-right: 6px;
+    border-right: 1px solid #666;
 }
+
+#nav a {
+    font-size: 16px;
+    color: #666;
+    text-decoration: underline;
+}
+
+
+/* 04 Basic Layout --------------------------------------------------------------------------------------------- */
+
+div.container {
+    line-height: 1.5;
+    width: 24%;
+    max-width: 320px;
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    ;
+}
+
+.primary {
+    font-size: 1.4em;
+}
+
+.primary nav {
+    font-size: 14px;
+    text-decoration: underline;
+}
+
+.primary h1 {
+    color: rgba(0, 0, 0, 0.3);
+    font-size: 36px;
+    margin-left: 40px;
+    margin-bottom: 0px;
+}
+
+div.primary div div {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 3em 0;
+}
+
+div.ads {
+    display: block;
+}
+
+.primary p {
+    margin-left: 40px;
+    font-size: 14px;
+    margin-top: 0px;
+}
+
+div.ads span {
+    display: block;
+}
+
+header nav ul li {
+    display: block;
+    padding: 0;
+}
+
+form input, form textarea {
+    margin-left: 5%;
+}
+
+article figure figcaption {
+    padding-left: 5%;
+}
+
+div#comments ol li article header div.gravatar-container {
+    left: 5%;
+}
+
+div#comments ol li article header h3, div#comments ol li article header h3 + p {
+    padding: 0 0 0 20%;
+}
+
+p.copyright, div.primary h2, div.primary p, div.primary span.fusionentire {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+p.note {
+    padding-bottom: 1em;
+}
+
+p.continue {
+    padding-top: 2em;
+}
+
+p.copyright {
+    padding: 8em 0 1em 0;
+    text-align: center;
+    position: relative;
+}
+
+cite {
+    font-style: normal;
+}
+
+.primary small {
+    position: absolute;
+    bottom: 1%;
+    left: 36px;
+    font-size: 12px
+}
+
+.primary small a {
+    color: #000
+}
+
+.archive-page a {
+    text-decoration: none;
+    color: #000
+}
+
+.archive-page a:hover {
+    color: #9c6
+}
+
+.archive-page p, .archive-page li {
+    list-style: none;
+}
+
+.archive-page h2 {
+    color: rgba(0, 0, 0, 0.3);
+    font-size: 3.2em;
+    margin: 0 0 0;
+    line-height: 1.2;
+}
+
+.archive-page h3 {
+    color: rgba(0, 0, 0, 0.3);
+    font-size: 2em;
+    margin: 10px 0;
+}
+
+.archive-page span.date {
+    color: rgba(0, 0, 0, 0.3);
+    display: block;
+}
+
+.archive-page span.category-tag {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+#nav {
+    display: none;
+}
+
+.tag-box {
+    list-style: none;
+    font-size: 16px;
+    line-height: 2.3;
+}
+
+.tag-box a {
+    text-decoration: none;
+}
+
+.tag-box .cat-name {
+    display: inline-block;
+    width: 60%;
+}
+
+.tag-box .cat-number {
+    display: inline-block;
+    width: 30%;
+}
+
+@media all and (max-width:799px) {
+    div.container {
+        display: none;
+    }
+    div.content {
+        padding: 0 18px;
+    }
+    div.post {
+        padding: 0 18px;
+    }
+    #nav {
+        width: 90%;
+        margin: 0 auto;
+        float: none;
+        display: inherit;
+        margin-left: 10px;
+    }
+    #nav ul {
+        padding: 0;
+        text-align: left;
+        margin-left: 10px;
+    }
+    #nav ul small {
+        display: none;
+        margin-left: 10px;
+    }
+    #nav a {
+        color: #9c6
+    }
+    #nav li:last-child {
+        border-right: 0 none;
+    }
+    #nav ul li {
+        display: inline-block;
+    }
+    .archive-page {
+        font-size: 14px;
+    }
+    .archive-page h3 {
+        color: rgba(0, 0, 0, 0.3);
+        font-size: 2em;
+        margin: 10px 0;
+    }
+}
+
+@media all and (min-width:1441px) {
+    div.bodycenter {
+        width: 1440px;
+        margin: 0 auto;
+    }
+    div.container {
+        width: 320px;
+        left: inherit;
+    }
+}
+
 @media all and (min-width:800px) {
-  div.container { background: #f6f6f6;}
-  div.primary                 {height: 100%;overflow: hidden;background-position: 100%;}
-  div.content                 { left: 36%;padding: 32px 0 20px 0;position: relative;width: 60%;overflow: hidden; }
- div.post                { left: 28%;padding: 16px 0 20px 0;position: relative;width: 60%;overflow: hidden; max-width: 660px;}
-.yue {
-font: 400 18px/1.62 "Georgia", "Xin Gothic", "Hiragino Sans GB", "Droid Sans Fallback", "Microsoft YaHei", sans-serif;
-color: #444443;
+    div.container {
+        background: #f6f6f6;
+    }
+    div.primary {
+        height: 100%;
+        overflow: hidden;
+        background-position: 100%;
+    }
+    div.content {
+        left: 36%;
+        padding: 32px 0 20px 0;
+        position: relative;
+        width: 60%;
+        overflow: hidden;
+    }
+    div.post {
+        left: 28%;
+        padding: 16px 0 20px 0;
+        position: relative;
+        width: 60%;
+        overflow: hidden;
+        max-width: 660px;
+    }
+    .yue {
+        font: 400 18px/1.62 "Georgia", "Xin Gothic", "Hiragino Sans GB", "Droid Sans Fallback", "Microsoft YaHei", sans-serif;
+        color: #444443;
+    }
 }
+
+
 }
+
+div.primary {
+    position: absolute;
+    bottom: 0.5%;
+    right: 10px;
+    font-size: 14px
 }
-div.primary 
- { position: absolute; bottom: 0.5%; right:10px;font-size:14px}
-div.primary small a {color:#000}
-#footer { /* padding: 0 10px 0 0; */ position: fixed; right: 0; bottom: 0; font-size: 14px; }
-#footer .cr { display: none;}
-#footer ul { float: left;}
-#footer ul li { display: inline-block;}
-#footer ul small { padding: 0 5px;}
+
+div.primary small a {
+    color: #000
+}
+
+#footer {
+    /* padding: 0 10px 0 0; */
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    font-size: 14px;
+}
+
+#footer .cr {
+    display: none;
+}
+
+#footer ul {
+    float: left;
+}
+
+#footer ul li {
+    display: inline-block;
+}
+
+#footer ul small {
+    padding: 0 5px;
+}
