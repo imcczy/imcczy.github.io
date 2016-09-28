@@ -5,7 +5,9 @@ author: imcczy
 email: imcczyh@gmail.com
 permalink: :title.html
 markdown: kramdown
-redcarpet:
-  extensions: [fenced_code_blocks]
+kramdown:
+  input: GFM
+  coderay:
+    coderay_wrap: code
 JB :
   categories_path: categories.html
