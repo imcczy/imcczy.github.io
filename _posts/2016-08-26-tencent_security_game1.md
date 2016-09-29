@@ -53,7 +53,7 @@ jni函数默认带有两个参数`JNIEnv*`和`jobject`，对应R0和R1。`.text:
 
 `loc_165E`首先分配冷20个字节的内存空间，且全初始化为0。`loc_1672`主要用于循环处理name，生成一个新的20字节字符串。`__aeabi_idivmod`是Run－time ABI函数，即求余，返回R0为商，R1为余。主要逻辑是：
 
-```cpp
+```
 char *s[20],*name[x];
 for(i=0 ; i++ ; i<16){
     (word)s[i] = (Byte)name[i%len(name)] * (i + 0x1339E7E) * len(name) ＋ s[i]的高三个字节
@@ -73,6 +73,7 @@ for(i=0 ; i++ ; i<16){
 ```
 ((len＋2)/4)*3；结果保存到了R5
 ```
+
 然后就是if判断分支了，这里判断的是R2，即符合的code长度。
 
 ![Alt text](http://imcczy.b0.upaiyun.com/2016-09-29-14%3A15%3A00.jpg)
@@ -87,6 +88,7 @@ len-4
 code = code + 4
 c = c + 3
 ```
+
 当code长度等于2时：
 
 ![Alt text](http://imcczy.b0.upaiyun.com/2016-09-29-14%3A11%3A22.jpg)
@@ -96,6 +98,7 @@ c = c + 3
 ```cpp
 *(Byte)c = T[*(Byte)code] * 4 | (T[*(Byte)(code+1)] >> 4)
 ```
+
 当code长度等于3时：
 
 ```cpp
@@ -115,6 +118,7 @@ c = c + 3
 .text:00001552                 SUBS    R0, R5, R2
 .text:00001554                 POP     {R4-R7,PC}
 ```
+
 R5是`((len＋2)/4)*3`，R2是剩余的长度即`len％4`，`R2=-R2 & 3｀即，R0:
 
 ```
@@ -128,10 +132,11 @@ R5是`((len＋2)/4)*3`，R2是剩余的长度即`len％4`，`R2=-R2 & 3｀即，
 到这为止就是利用name和code生成了两个长度20的数组s和c。
 
 ![Alt text](http://imcczy.b0.upaiyun.com/2016-09-29-14%3A11%3A42.jpg)
+
 `ADD R3, SP, #0x470+s`，`R3`重新指向根据name生成的字符串，`R4=0`。这里的循环每次取s一个字的数据，然后除以10，新的数据存入新的数组。同时将c的20字节数据复制到一个新的数组。至此所有数据处理完毕。
  然后是几个方程组：
 
- ![Alt text](http://imcczy.b0.upaiyun.com/2016-09-29-14%3A12%3A01.jpg)
+![Alt text](http://imcczy.b0.upaiyun.com/2016-09-29-14%3A12%3A01.jpg)
 
 由于这里的操作都以字为单位，可以当成int数组来处理。我们假设name产生的数组为n，code产生的数组为c。R5对应c，R6对应n。
 所以
@@ -145,8 +150,8 @@ n[4]+c[1]=3*n[2]
 ```
 
 code的处理类似base64解码。因为每个键值都是6位，编码的过程类似：
-```
-cpp
+
+```cpp
 c[0] = 6+2
 c[1] = 4+4
 c[2] = 2+6
