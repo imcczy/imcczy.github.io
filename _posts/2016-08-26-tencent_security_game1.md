@@ -9,7 +9,7 @@ tags: Security
 
 APK放进JEB即可看到软件调用了`libCheckRegister.so`的`NativeCheckRegister`函数，参数是name和code。丢进IDA
 
-```armasm
+```bash
 .text:00001758                 EXPORT Java_com_tencent_tencent2016a_MainActivity_NativeCheckRegister
 .text:00001758 Java_com_tencent_tencent2016a_MainActivity_NativeCheckRegister
 .text:00001758
@@ -104,7 +104,7 @@ c = c + 3
 ```
 最后，
 
-```armasm
+```bash
 .text:00001548 loc_1548                                ; CODE XREF: sub_1498+68j
 .text:00001548                                         ; sub_1498+84j ...
 .text:00001548                 MOVS    R1, #0

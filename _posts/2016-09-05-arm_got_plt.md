@@ -33,7 +33,7 @@ void main(){
 
 可见printf的调用地址是`0x102c4`，查看该处内容：
 
-```armasm
+```bash
 //objdump
 000102c4 <puts@plt>:
    102c4:	e28fc600 	add	ip, pc, #0, 12
@@ -51,7 +51,7 @@ Dump of assembler code from 0x102c4 to 0x102d0:
 
 即`plt`中的`puts`条目，计算可得，`0x102cc`处指令的pc值为`0x205e0=0x102cc+0x10000+0x314`。查看其内容：
 
-```armasm
+```bash
 gef> xinfo $r12+0x314
 Found 0x000205e0
 Page: 0x00020000 -> 0x00021000 (size=0x1000)
@@ -76,7 +76,8 @@ Disassembly of section .got:
    205f0:	00000000 	andeq	r0, r0, r0
 ```
 即跳转到了GOT中的puts条目，其内容是`0x102b0`，所以程序会接着跳转到这：
-```armasm
+
+```bash
 000102b0 <puts@plt-0x14>:
    102b0:	e52de004 	push	{lr}		; (str lr, [sp, #-4]!)
    102b4:	e59fe004 	ldr	lr, [pc, #4]	; 102c0 <_init+0x1c>
@@ -87,7 +88,7 @@ Disassembly of section .got:
 
 这里会继续跳向`0x205dc`，也是一个GOT条目，储存着，动态链接器的入口地址：
 
-```armasm
+```bash
 gef> p/x *0x205dc
 $2 = 0x76fe4f38
 gef> disass 0x76fe4f38
@@ -106,7 +107,7 @@ End of assembler dump.
 
 解析完后，会将符号的地址写入GOT，当我们第二次调用该函数时，GOT条目的值是：
 
-```armasm
+```bash
 gef> p/x *0x205e0
 $3 = 0x76ec4478
 gef> disas 0x76ec4478
