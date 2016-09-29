@@ -6,6 +6,7 @@ categories: Linux
 tags: vmware
 ---
 原文链接：[http://t.cn/RzCP9E2](http://t.cn/RzCP9E2)
+
 **年代久远，谨慎尝试**
 
 >虚拟机用着用着空间就不够了，google了一篇文章，试了一下，有用，征得作者同意，翻译了下。删了一些无关的东西。
