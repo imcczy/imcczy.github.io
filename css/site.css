@@ -269,6 +269,7 @@
     color: #c7254e;
     background-color: #f9f2f4;
     border-radius: 4px;
+    word-break: break-all;
 }
 .yue div.highlighter-rouge{
     text-align: start;
