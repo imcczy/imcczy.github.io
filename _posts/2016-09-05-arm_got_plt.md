@@ -20,7 +20,7 @@ void main(){
 
 首先查看main函数的汇编代码：
 
-```asm
+```
 0001041c <main>:
    1041c:	e92d4800 	push	{fp, lr}
    10420:	e28db004 	add	fp, sp, #4
