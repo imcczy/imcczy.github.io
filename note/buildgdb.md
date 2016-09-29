@@ -64,4 +64,4 @@ linux-low.c:5227:15: error: 'Elf64_auxv_t' undeclared (first use in this functio
 /*#undef HAVE_ELF64_AUXV_T*/
 ```
 
-在安卓上运行还要修改生成的makefile，cflags加上-fPIE和ldflags加上-fPIE -pie
+在安卓上运行还要修改生成的makefile，cflags加上-fPIE和ldflags加上-fPIE -pie，之前configure生成makefile的时候，CFLAGS变量没生效，未知。
