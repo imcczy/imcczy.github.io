@@ -506,7 +506,7 @@
     border: 0;
     background: 0
 }
-
+/*
 @media (min-width: 1100px) {
     .yue blockquote {
         margin-left:-24px;
@@ -540,7 +540,7 @@
         margin-top: 0
     }
 }
-
+*/
 a.button {
     text-decoration: none;
     border: 3px solid rgba(0,0,0,.07);
