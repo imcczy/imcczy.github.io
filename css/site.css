@@ -258,11 +258,12 @@
     color: #F5871F
 }
 .yue {
-    font: 400 16px/1.62 "Xin Gothic","Hiragino Sans GB","Droid Sans Fallback","Microsoft YaHei",sans-serif;
+    font: 400 14px/1.62 "Xin Gothic","Hiragino Sans GB","Droid Sans Fallback","Microsoft YaHei",sans-serif;
     color: #444443
 }
 .yue code{
     white-space: pre-wrap;
+    font-family: consolas, Menlo, "PingFang SC", "Microsoft YaHei", monospace;
 }
 
 .yue p code {
@@ -284,10 +285,6 @@
     display: block;
     padding: 15px;
     background-color: #f0f0f0;
-}
-
-.highlight {
-    font-family:monospace
 }
 .windows .yue {
     font-size: 16px;
@@ -468,7 +465,7 @@
     padding: 0
 }
 .yue pre {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .yue table {
@@ -557,10 +554,6 @@ a.button {
 a.button:hover {
     opacity: 1;
     border-color: #666
-}
-
-.yue {
-    font-family: Lora,"Xin Gothic", "lucida sans unicode","Hiragino Sans GB","WenQuanYi Micro Hei",sans-serif
 }
 
 .yue .cite-quote {
