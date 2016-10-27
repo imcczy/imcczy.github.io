@@ -282,9 +282,8 @@
 }
 .yue pre.highlight{
     display: block;
-    padding: .5em;
+    padding: 15px;
     background-color: #f0f0f0;
-    padding: 1.3em 2em !important;
 }
 
 .highlight {
