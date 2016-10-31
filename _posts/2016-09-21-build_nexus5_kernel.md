@@ -7,6 +7,7 @@ tags: Security
 ---
 
 一些准备工作
+
 ```bash
 $ sudo apt-get install android-tools-adb android-tools-fastboot
 $ sudo apt-get install build-essential abootimg git
