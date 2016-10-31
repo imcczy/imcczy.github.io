@@ -65,7 +65,8 @@ cp arch/arm/boot/zImage-dtb kernel
 mkbootimg --base 0 --pagesize 2048 --kernel_offset 0x00008000 --ramdisk_offset 0x02900000 --second_offset 0x00f00000 --tags_offset 0x02700000 --cmdline 'console=ttyHSL0,115200,n8 androidboot.hardware=hammerhead  user_debug=31 maxcpus=2 msm_watchdog_v2.enable=1' --kernel kernel --ramdisk ramdisk.cpio.gz -o boot_img/boot.img
 重新打包boot.img
 ```
-### 修改内核绕过反调试
+
+**修改内核绕过反调试**
 
 ```cpp
 //base.c 对应改成如下：
