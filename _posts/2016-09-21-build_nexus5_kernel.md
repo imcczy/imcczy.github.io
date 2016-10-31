@@ -68,7 +68,7 @@ mkbootimg --base 0 --pagesize 2048 --kernel_offset 0x00008000 --ramdisk_offset 0
 ### 修改内核绕过反调试
 
 ```cpp
-base.c 对应改成如下：
+//base.c 对应改成如下：
 else {
            if (strstr(symname, "trace")) {
                 return sprintf(buffer, "%s", "sys_epoll_wait");
@@ -76,7 +76,7 @@ else {
            return sprintf(buffer, "%s", symname);
       }
 
-array.c 修改如下：
+//array.c 修改如下：
       static const char * const task_state_array[] = {
            "R (running)",        /*    0 */
            "S (sleeping)",       /*    1 */
@@ -97,6 +97,6 @@ array.c 修改如下：
                 ppid, /*tpid*/0,//修改
                 cred->uid, cred->euid, cred->suid, cred->fsuid,
                 cred->gid, cred->egid, cred->sgid, cred->fsgid);
-     也可以在获取tpid之后跟一句
-     tpid = 0；
+     //也可以在获取tpid之后跟一句
+     //tpid = 0；
 ```
