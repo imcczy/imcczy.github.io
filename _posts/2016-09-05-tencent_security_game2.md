@@ -3,7 +3,7 @@ layout: post
 title:  "腾讯游戏安全竞赛Android第二题"
 date:   2016-09-05 17:33:40
 categories: Android
-tags: Security
+tags: CrackMe
 ---
 
 将APK丢进JEB，可以看到扫描的得到的数据首先会base64解码一遍，得到的字符串长度必须为32，即注册码的长度为44。
