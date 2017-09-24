@@ -1,15 +1,9 @@
 ---
 layout: note
-title: 面试经历
+title: 面试记录
 permalink: /note/面试
 ---
 
-                        
-                    
-
-
-
-<h1 id="面试记录">面试记录</h1>
 
 <p></p>
 
