@@ -7,65 +7,436 @@ tags: System
 ---
 
 
-<h1 id="加载类和方法">加载类和方法</h1>
+有两个方法，分别是ClassLoader的findClass和loadClass，区别是loadclass会尝试去寻找已经加载的类，若没有，则尝试去父classloader加载类，若还是没有，则调用findclass。
+//android 5+以上无法用findClass找到android.app.Application类，未验证
 
-<p></p>
+findclass由BaseDexClassLoader实现：
 
-<p>有两个方法，分别是ClassLoader的findClass和loadClass，区别是loadclass会尝试去寻找已经加载的类，若没有，则尝试去父classloader加载类，若还是没有，则调用findclass。 <br>
-//android 5+以上无法用findClass找到android.app.Application类，未验证</p>
+```java
+@Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        List<Throwable> suppressedExceptions = new ArrayList<Throwable>();
+        Class c = pathList.findClass(name, suppressedExceptions);
+        if (c == null) {
+            ClassNotFoundException cnfe = new ClassNotFoundException("Didn't find class \"" + name + "\" on path: " + pathList);
+            for (Throwable t : suppressedExceptions) {
+                cnfe.addSuppressed(t);}
+            throw cnfe;}
+        return c;}
+```
+可以看见调用了pathLIst（DexPathList类型）的findclass方法：
 
-<p>findclass由BaseDexClassLoader实现：</p>
+```java
+    public Class findClass(String name, List<Throwable> suppressed) {
+        for (Element element : dexElements) {
+            DexFile dex = element.dexFile;
 
+            if (dex != null) {
+                Class clazz = dex.loadClassBinaryName(name, definingContext, suppressed);
+                if (clazz != null) {
+                    return clazz;}}}
+        if (dexElementsSuppressedExceptions != null) {
+suppressed.addAll(Arrays.asList(dexElementsSuppressedExceptions));
+        }
+        return null;}
+```
 
+DexPathList的Element数组，存放了加载的DexFile，一次调用各DexFile的loadClassBinaryName：
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-java hljs"><span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> Class&lt;?&gt; findClass(String name) <span class="hljs-keyword">throws</span> ClassNotFoundException {<br>        List&lt;Throwable&gt; suppressedExceptions = <span class="hljs-keyword">new</span> ArrayList&lt;Throwable&gt;();<br>        Class c = pathList.findClass(name, suppressedExceptions);<br>        <span class="hljs-keyword">if</span> (c == <span class="hljs-keyword">null</span>) {<br>            ClassNotFoundException cnfe = <span class="hljs-keyword">new</span> ClassNotFoundException(<span class="hljs-string">"Didn't find class \""</span> + name + <span class="hljs-string">"\" on path: "</span> + pathList);<br>            <span class="hljs-keyword">for</span> (Throwable t : suppressedExceptions) {<br>                cnfe.addSuppressed(t);}<br>            <span class="hljs-keyword">throw</span> cnfe;}<br>        <span class="hljs-keyword">return</span> c;}<br></code></pre></div>
+```java
+public Class loadClassBinaryName(String name, ClassLoader loader, List<Throwable> suppressed) {
+        return defineClass(name, loader, mCookie, suppressed);
+    }
 
-<p>可以看见调用了pathLIst（DexPathList类型）的findclass方法：</p>
+    private static Class defineClass(String name, ClassLoader loader, Object cookie,
+                                     List<Throwable> suppressed) {
+        Class result = null;
+        try {
+            result = defineClassNative(name, loader, cookie);
+        } catch (NoClassDefFoundError e) {
+            if (suppressed != null) {
+                suppressed.add(e);
+            }
+        } catch (ClassNotFoundException e) {
+            if (suppressed != null) {
+                suppressed.add(e);
+            }
+        }
+        return result;
+    }
+```
+最后调用了defineClassNative，对应art/runtime/native/dalvik_system_DexFile.cc中的DexFile_defineClassNative方法：
 
+```cpp
+static jclass DexFile_defineClassNative(JNIEnv* env, jclass, jstring javaName, jobject javaLoader,
+                                        jobject cookie) {
+  std::unique_ptr<std::vector<const DexFile*>> dex_files = ConvertJavaArrayToNative(env, cookie);
+  if (dex_files.get() == nullptr) {
+    VLOG(class_linker) << "Failed to find dex_file";
+    DCHECK(env->ExceptionCheck());
+    return nullptr;
+  }
 
+  ScopedUtfChars class_name(env, javaName);
+  if (class_name.c_str() == nullptr) {
+    VLOG(class_linker) << "Failed to find class_name";
+    return nullptr;
+  }
+  const std::string descriptor(DotToDescriptor(class_name.c_str()));
+  const size_t hash(ComputeModifiedUtf8Hash(descriptor.c_str()));
+  for (auto& dex_file : *dex_files) {
+    const DexFile::ClassDef* dex_class_def = dex_file->FindClassDef(descriptor.c_str(), hash);
+    if (dex_class_def != nullptr) {
+      ScopedObjectAccess soa(env);
+      ClassLinker* class_linker = Runtime::Current()->GetClassLinker();
+      class_linker->RegisterDexFile(*dex_file);
+      StackHandleScope<1> hs(soa.Self());
+      Handle<mirror::ClassLoader> class_loader(
+          hs.NewHandle(soa.Decode<mirror::ClassLoader*>(javaLoader)));
+      mirror::Class* result = class_linker->DefineClass(soa.Self(), descriptor.c_str(), hash,
+                                                        class_loader, *dex_file, *dex_class_def);
+      if (result != nullptr) {
+        VLOG(class_linker) << "DexFile_defineClassNative returning " << result
+                           << " for " << class_name.c_str();
+        return soa.AddLocalReference<jclass>(result);
+      }
+    }
+  }
+  VLOG(class_linker) << "Failed to find dex_class_def " << class_name.c_str();
+  return nullptr;
+}
+```
+调用了class_linker->DefineClass，这个函数内容很多，抓重点：
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-java hljs">    <span class="hljs-function"><span class="hljs-keyword">public</span> Class <span class="hljs-title">findClass</span><span class="hljs-params">(String name, List&lt;Throwable&gt; suppressed)</span> </span>{<br>        <span class="hljs-keyword">for</span> (Element element : dexElements) {<br>            DexFile dex = element.dexFile;<br><br>            <span class="hljs-keyword">if</span> (dex != <span class="hljs-keyword">null</span>) {<br>                Class clazz = dex.loadClassBinaryName(name, definingContext, suppressed);<br>                <span class="hljs-keyword">if</span> (clazz != <span class="hljs-keyword">null</span>) {<br>                    <span class="hljs-keyword">return</span> clazz;}}}<br>        <span class="hljs-keyword">if</span> (dexElementsSuppressedExceptions != <span class="hljs-keyword">null</span>) {<br>suppressed.addAll(Arrays.asList(dexElementsSuppressedExceptions));<br>        }<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;}<br></code></pre></div>
+```cpp
+// Add the newly loaded class to the loaded classes table.
+  mirror::Class* existing = InsertClass(descriptor, klass.Get(), hash);
+  if (existing != nullptr) {
+    // We failed to insert because we raced with another thread. Calling EnsureResolved may cause
+    // this thread to block.
+    return EnsureResolved(self, descriptor, existing);
+  }
 
-<p>DexPathList的Element数组，存放了加载的DexFile，一次调用各DexFile的loadClassBinaryName：</p>
+  // Load the fields and other things after we are inserted in the table. This is so that we don't
+  // end up allocating unfree-able linear alloc resources and then lose the race condition. The
+  // other reason is that the field roots are only visited from the class table. So we need to be
+  // inserted before we allocate / fill in these fields.
+  LoadClass(self, dex_file, dex_class_def, klass);
+  if (self->IsExceptionPending()) {
+    // An exception occured during load, set status to erroneous while holding klass' lock in case
+    // notification is necessary.
+    if (!klass->IsErroneous()) {
+      mirror::Class::SetStatus(klass, mirror::Class::kStatusError, self);
+    }
+    return nullptr;
+  }
 
+  // Finish loading (if necessary) by finding parents
+  CHECK(!klass->IsLoaded());
+  if (!LoadSuperAndInterfaces(klass, dex_file)) {
+    // Loading failed.
+    if (!klass->IsErroneous()) {
+      mirror::Class::SetStatus(klass, mirror::Class::kStatusError, self);
+    }
+    return nullptr;
+  }
+  CHECK(klass->IsLoaded());
+  // Link the class (if necessary)
+  CHECK(!klass->IsResolved());
+  // TODO: Use fast jobjects?
+  auto interfaces = hs.NewHandle<mirror::ObjectArray<mirror::Class>>(nullptr);
 
+  MutableHandle<mirror::Class> h_new_class = hs.NewHandle<mirror::Class>(nullptr);
+  if (!LinkClass(self, descriptor, klass, interfaces, &h_new_class)) {
+    // Linking failed.
+    if (!klass->IsErroneous()) {
+      mirror::Class::SetStatus(klass, mirror::Class::kStatusError, self);
+    }
+    return nullptr;
+  }
+```
+先调用InsertClass将新类添加到已加载类的列表中。再调用LoadClass和LinkClass来加载和链接类。
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-java hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> Class <span class="hljs-title">loadClassBinaryName</span><span class="hljs-params">(String name, ClassLoader loader, List&lt;Throwable&gt; suppressed)</span> </span>{<br>        <span class="hljs-keyword">return</span> defineClass(name, loader, mCookie, suppressed);<br>    }<br><br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Class <span class="hljs-title">defineClass</span><span class="hljs-params">(String name, ClassLoader loader, Object cookie,<br>                                     List&lt;Throwable&gt; suppressed)</span> </span>{<br>        Class result = <span class="hljs-keyword">null</span>;<br>        <span class="hljs-keyword">try</span> {<br>            result = defineClassNative(name, loader, cookie);<br>        } <span class="hljs-keyword">catch</span> (NoClassDefFoundError e) {<br>            <span class="hljs-keyword">if</span> (suppressed != <span class="hljs-keyword">null</span>) {<br>                suppressed.add(e);<br>            }<br>        } <span class="hljs-keyword">catch</span> (ClassNotFoundException e) {<br>            <span class="hljs-keyword">if</span> (suppressed != <span class="hljs-keyword">null</span>) {<br>                suppressed.add(e);<br>            }<br>        }<br>        <span class="hljs-keyword">return</span> result;<br>    }<br></code></pre></div>
+```cpp
+void ClassLinker::LoadClass(Thread* self, const DexFile& dex_file,
+                            const DexFile::ClassDef& dex_class_def,
+                            Handle<mirror::Class> klass) {
+  const uint8_t* class_data = dex_file.GetClassData(dex_class_def);
+  if (class_data == nullptr) {
+    return;  // no fields or methods - for example a marker interface
+  }
+  bool has_oat_class = false;
+  if (Runtime::Current()->IsStarted() && !Runtime::Current()->IsAotCompiler()) {
+    OatFile::OatClass oat_class = FindOatClass(dex_file, klass->GetDexClassDefIndex(),
+                                               &has_oat_class);
+    if (has_oat_class) {
+      LoadClassMembers(self, dex_file, class_data, klass, &oat_class);
+    }
+  }
+  if (!has_oat_class) {
+    LoadClassMembers(self, dex_file, class_data, klass, nullptr);
+  }
+}
+```
+这里分为，有oat和没有oat，最后都是调用 LoadClassMembers：
 
-<p>最后调用了defineClassNative，对应art/runtime/native/dalvik_system_DexFile.cc中的DexFile_defineClassNative方法：</p>
+```cpp
+void ClassLinker::LoadClassMembers(Thread* self, const DexFile& dex_file,
+                                   const uint8_t* class_data,
+                                   Handle<mirror::Class> klass,
+                                   const OatFile::OatClass* oat_class) {
+  {
+    // Note: We cannot have thread suspension until the field and method arrays are setup or else
+    // Class::VisitFieldRoots may miss some fields or methods.
+    ScopedAssertNoThreadSuspension nts(self, __FUNCTION__);
+    // Load static fields.
+    ClassDataItemIterator it(dex_file, class_data);
+    const size_t num_sfields = it.NumStaticFields();
+    ArtField* sfields = num_sfields != 0 ? AllocArtFieldArray(self, num_sfields) : nullptr;
+    for (size_t i = 0; it.HasNextStaticField(); i++, it.Next()) {
+      CHECK_LT(i, num_sfields);
+      LoadField(it, klass, &sfields[i]);
+    }
+    klass->SetSFields(sfields);
+    klass->SetNumStaticFields(num_sfields);
+    DCHECK_EQ(klass->NumStaticFields(), num_sfields);
+    // Load instance fields.
+    const size_t num_ifields = it.NumInstanceFields();
+    ArtField* ifields = num_ifields != 0 ? AllocArtFieldArray(self, num_ifields) : nullptr;
+    for (size_t i = 0; it.HasNextInstanceField(); i++, it.Next()) {
+      CHECK_LT(i, num_ifields);
+      LoadField(it, klass, &ifields[i]);
+    }
+    klass->SetIFields(ifields);
+    klass->SetNumInstanceFields(num_ifields);
+    DCHECK_EQ(klass->NumInstanceFields(), num_ifields);
+    ArtMethod* const direct_methods = (it.NumDirectMethods() != 0)
+        ? AllocArtMethodArray(self, it.NumDirectMethods())
+        : nullptr;
+    ArtMethod* const virtual_methods = (it.NumVirtualMethods() != 0)
+        ? AllocArtMethodArray(self, it.NumVirtualMethods())
+        : nullptr;
+    {
+      // Used to get exclusion between with VisitNativeRoots so that no thread sees a length for
+      // one array with a pointer for a different array.
+      WriterMutexLock mu(self, *Locks::classlinker_classes_lock_);
+      // Load methods.
+      klass->SetDirectMethodsPtr(direct_methods);
+      klass->SetNumDirectMethods(it.NumDirectMethods());
+      klass->SetVirtualMethodsPtr(virtual_methods);
+      klass->SetNumVirtualMethods(it.NumVirtualMethods());
+    }
+    size_t class_def_method_index = 0;
+    uint32_t last_dex_method_index = DexFile::kDexNoIndex;
+    size_t last_class_def_method_index = 0;
+    for (size_t i = 0; it.HasNextDirectMethod(); i++, it.Next()) {
+      ArtMethod* method = klass->GetDirectMethodUnchecked(i, image_pointer_size_);
+      LoadMethod(self, dex_file, it, klass, method);
+      LinkCode(method, oat_class, class_def_method_index);
+      uint32_t it_method_index = it.GetMemberIndex();
+      if (last_dex_method_index == it_method_index) {
+        // duplicate case
+        method->SetMethodIndex(last_class_def_method_index);
+      } else {
+        method->SetMethodIndex(class_def_method_index);
+        last_dex_method_index = it_method_index;
+        last_class_def_method_index = class_def_method_index;
+      }
+      class_def_method_index++;
+    }
+    for (size_t i = 0; it.HasNextVirtualMethod(); i++, it.Next()) {
+      ArtMethod* method = klass->GetVirtualMethodUnchecked(i, image_pointer_size_);
+      LoadMethod(self, dex_file, it, klass, method);
+      DCHECK_EQ(class_def_method_index, it.NumDirectMethods() + i);
+      LinkCode(method, oat_class, class_def_method_index);
+      class_def_method_index++;
+    }
+    DCHECK(!it.HasNext());
+  }
+  self->AllowThreadSuspension();
+}
+```
+代码很长，大体就是前半部分加载class的静态域和实例域，后半部分先加载direct方法，再加载virtual方法。先调用LoadMethod方法初始化ArtMethod对象。
 
+```cpp
+void ClassLinker::LoadMethod(Thread* self, const DexFile& dex_file, const ClassDataItemIterator& it,
+2392                             Handle<mirror::Class> klass, ArtMethod* dst) {
+2393  uint32_t dex_method_idx = it.GetMemberIndex();
+2394  const DexFile::MethodId& method_id = dex_file.GetMethodId(dex_method_idx);
+  const char* method_name = dex_file.StringDataByIdx(method_id.name_idx_);
 
+  ScopedAssertNoThreadSuspension ants(self, "LoadMethod");
+  dst->SetDexMethodIndex(dex_method_idx);
+  dst->SetDeclaringClass(klass.Get());
+  dst->SetCodeItemOffset(it.GetMethodCodeItemOffset());
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-cpp hljs"><span class="hljs-function"><span class="hljs-keyword">static</span> jclass <span class="hljs-title">DexFile_defineClassNative</span><span class="hljs-params">(JNIEnv* env, jclass, jstring javaName, jobject javaLoader,<br>                                        jobject cookie)</span> </span>{<br>  <span class="hljs-built_in">std</span>::<span class="hljs-built_in">unique_ptr</span>&lt;<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">const</span> DexFile*&gt;&gt; dex_files = ConvertJavaArrayToNative(env, cookie);<br>  <span class="hljs-keyword">if</span> (dex_files.get() == <span class="hljs-literal">nullptr</span>) {<br>    VLOG(class_linker) &lt;&lt; <span class="hljs-string">"Failed to find dex_file"</span>;<br>    DCHECK(env-&gt;ExceptionCheck());<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  }<br><br>  <span class="hljs-function">ScopedUtfChars <span class="hljs-title">class_name</span><span class="hljs-params">(env, javaName)</span></span>;<br>  <span class="hljs-keyword">if</span> (class_name.c_str() == <span class="hljs-literal">nullptr</span>) {<br>    VLOG(class_linker) &lt;&lt; <span class="hljs-string">"Failed to find class_name"</span>;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  }<br>  <span class="hljs-keyword">const</span> <span class="hljs-built_in">std</span>::<span class="hljs-function"><span class="hljs-built_in">string</span> <span class="hljs-title">descriptor</span><span class="hljs-params">(DotToDescriptor(class_name.c_str()</span>))</span>;<br>  <span class="hljs-function"><span class="hljs-keyword">const</span> size_t <span class="hljs-title">hash</span><span class="hljs-params">(ComputeModifiedUtf8Hash(descriptor.c_str()</span>))</span>;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; dex_file : *dex_files) {<br>    <span class="hljs-keyword">const</span> DexFile::ClassDef* dex_class_def = dex_file-&gt;FindClassDef(descriptor.c_str(), hash);<br>    <span class="hljs-keyword">if</span> (dex_class_def != <span class="hljs-literal">nullptr</span>) {<br>      <span class="hljs-function">ScopedObjectAccess <span class="hljs-title">soa</span><span class="hljs-params">(env)</span></span>;<br>      ClassLinker* class_linker = Runtime::Current()-&gt;GetClassLinker();<br>      class_linker-&gt;RegisterDexFile(*dex_file);<br>      StackHandleScope&lt;<span class="hljs-number">1</span>&gt; hs(soa.Self());<br>      Handle&lt;mirror::ClassLoader&gt; class_loader(<br>          hs.NewHandle(soa.Decode&lt;mirror::ClassLoader*&gt;(javaLoader)));<br>      mirror::Class* result = class_linker-&gt;DefineClass(soa.Self(), descriptor.c_str(), hash,<br>                                                        class_loader, *dex_file, *dex_class_def);<br>      <span class="hljs-keyword">if</span> (result != <span class="hljs-literal">nullptr</span>) {<br>        VLOG(class_linker) &lt;&lt; <span class="hljs-string">"DexFile_defineClassNative returning "</span> &lt;&lt; result<br>                           &lt;&lt; <span class="hljs-string">" for "</span> &lt;&lt; class_name.c_str();<br>        <span class="hljs-keyword">return</span> soa.AddLocalReference&lt;jclass&gt;(result);<br>      }<br>    }<br>  }<br>  VLOG(class_linker) &lt;&lt; <span class="hljs-string">"Failed to find dex_class_def "</span> &lt;&lt; class_name.c_str();<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>}<br></code></pre></div>
+  dst->SetDexCacheResolvedMethods(klass->GetDexCache()->GetResolvedMethods());
+  dst->SetDexCacheResolvedTypes(klass->GetDexCache()->GetResolvedTypes());
 
-<p>调用了class_linker-&gt;DefineClass，这个函数内容很多，抓重点：</p>
+  uint32_t access_flags = it.GetMethodAccessFlags();
 
+  if (UNLIKELY(strcmp("finalize", method_name) == 0)) {
+    // Set finalizable flag on declaring class.
+    if (strcmp("V", dex_file.GetShorty(method_id.proto_idx_)) == 0) {
+      // Void return type.
+      if (klass->GetClassLoader() != nullptr) {  // All non-boot finalizer methods are flagged.
+        klass->SetFinalizable();
+      } else {
+        std::string temp;
+        const char* klass_descriptor = klass->GetDescriptor(&tem       // The Enum class declares a "final" finalize() method to prevent subclasses from
+        // introducing a finalizer. We don't want to set the finalizable flag for Enum or its
+        // subclasses, so we exclude it here.
+        // We also want to avoid setting the flag on Object, where we know that finalize() is
+        // empty.
+        if (strcmp(klass_descriptor, "Ljava/lang/Object;") != 0 &&
+            strcmp(klass_descriptor, "Ljava/lang/Enum;") != 0) {
+          klass->SetFinalizable();
+        }
+      }
+    }
+  } else if (method_name[0] == '<') {
+    // Fix broken access flags for initializers. Bug 11157540.
+    bool is_init = (strcmp("<init>", method_name) == 0);
+    bool is_clinit = !is_init && (strcmp("<clinit>", method_name) == 0);
+    if (UNLIKELY(!is_init && !is_clinit)) {
+      LOG(WARNING) << "Unexpected '<' at start of method name " << method_name;
+    } else {
+      if (UNLIKELY((access_flags & kAccConstructor) == 0)) {
+        LOG(WARNING) << method_name << " didn't have expected constructor access flag in class "
+            << PrettyDescriptor(klass.Get()) << " in dex file " << dex_file.GetLocation();
+        access_flags |= kAccConstructor;
+      }
+    }
+  }
+  dst->SetAccessFlags(access_flags);
+}
+```
 
+```cpp
+void ClassLinker::LinkCode(ArtMethod* method, const OatFile::OatClass* oat_class,
+                           uint32_t class_def_method_index) {
+  Runtime* const runtime = Runtime::Current();
+  if (runtime->IsAotCompiler()) {
+    // The following code only applies to a non-compiler runtime.
+    return;
+  }
+  // Method shouldn't have already been linked.
+  DCHECK(method->GetEntryPointFromQuickCompiledCode() == nullptr);
+  if (oat_class != nullptr) {
+    // Every kind of method should at least get an invoke stub from the oat_method.
+    // non-abstract methods also get their code pointers.
+    const OatFile::OatMethod oat_method = oat_class->GetOatMethod(class_def_method_index);
+    oat_method.LinkMethod(method);
+  }
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-cpp hljs"><span class="hljs-comment">// Add the newly loaded class to the loaded classes table.</span><br>  mirror::Class* existing = InsertClass(descriptor, klass.Get(), hash);<br>  <span class="hljs-keyword">if</span> (existing != <span class="hljs-literal">nullptr</span>) {<br>    <span class="hljs-comment">// We failed to insert because we raced with another thread. Calling EnsureResolved may cause</span><br>    <span class="hljs-comment">// this thread to block.</span><br>    <span class="hljs-keyword">return</span> EnsureResolved(self, descriptor, existing);<br>  }<br><br>  <span class="hljs-comment">// Load the fields and other things after we are inserted in the table. This is so that we don't</span><br>  <span class="hljs-comment">// end up allocating unfree-able linear alloc resources and then lose the race condition. The</span><br>  <span class="hljs-comment">// other reason is that the field roots are only visited from the class table. So we need to be</span><br>  <span class="hljs-comment">// inserted before we allocate / fill in these fields.</span><br>  LoadClass(self, dex_file, dex_class_def, klass);<br>  <span class="hljs-keyword">if</span> (self-&gt;IsExceptionPending()) {<br>    <span class="hljs-comment">// An exception occured during load, set status to erroneous while holding klass' lock in case</span><br>    <span class="hljs-comment">// notification is necessary.</span><br>    <span class="hljs-keyword">if</span> (!klass-&gt;IsErroneous()) {<br>      mirror::Class::SetStatus(klass, mirror::Class::kStatusError, self);<br>    }<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  }<br><br>  <span class="hljs-comment">// Finish loading (if necessary) by finding parents</span><br>  CHECK(!klass-&gt;IsLoaded());<br>  <span class="hljs-keyword">if</span> (!LoadSuperAndInterfaces(klass, dex_file)) {<br>    <span class="hljs-comment">// Loading failed.</span><br>    <span class="hljs-keyword">if</span> (!klass-&gt;IsErroneous()) {<br>      mirror::Class::SetStatus(klass, mirror::Class::kStatusError, self);<br>    }<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  }<br>  CHECK(klass-&gt;IsLoaded());<br>  <span class="hljs-comment">// Link the class (if necessary)</span><br>  CHECK(!klass-&gt;IsResolved());<br>  <span class="hljs-comment">// <span class="hljs-doctag">TODO:</span> Use fast jobjects?</span><br>  <span class="hljs-keyword">auto</span> interfaces = hs.NewHandle&lt;mirror::ObjectArray&lt;mirror::Class&gt;&gt;(<span class="hljs-literal">nullptr</span>);<br><br>  MutableHandle&lt;mirror::Class&gt; h_new_class = hs.NewHandle&lt;mirror::Class&gt;(<span class="hljs-literal">nullptr</span>);<br>  <span class="hljs-keyword">if</span> (!LinkClass(self, descriptor, klass, interfaces, &amp;h_new_class)) {<br>    <span class="hljs-comment">// Linking failed.</span><br>    <span class="hljs-keyword">if</span> (!klass-&gt;IsErroneous()) {<br>      mirror::Class::SetStatus(klass, mirror::Class::kStatusError, self);<br>    }<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  }<br></code></pre></div>
+  // Install entry point from interpreter.
+  bool enter_interpreter = NeedsInterpreter(method, method->GetEntryPointFromQuickCompiledCode());
+  if (enter_interpreter && !method->IsNative()) {
+    method->SetEntryPointFromInterpreter(artInterpreterToInterpreterBridge);
+  } else {
+    method->SetEntryPointFromInterpreter(artInterpreterToCompiledCodeBridge);
+  }
 
-<p>先调用InsertClass将新类添加到已加载类的列表中。再调用LoadClass和LinkClass来加载和链接类。</p>
+  if (method->IsAbstract()) {
+    method->SetEntryPointFromQuickCompiledCode(GetQuickToInterpreterBridge());
+    return;
+  }
 
+  if (method->IsStatic() && !method->IsConstructor()) {
+    // For static methods excluding the class initializer, install the trampoline.
+    // It will be replaced by the proper entry point by ClassLinker::FixupStaticTrampolines
+    // after initializing class (see ClassLinker::InitializeClass method).
+    method->SetEntryPointFromQuickCompiledCode(GetQuickResolutionStub());
+  } else if (enter_interpreter) {
+    if (!method->IsNative()) {
+      // Set entry point from compiled code if there's no code or in interpreter only mode.
+      method->SetEntryPointFromQuickCompiledCode(GetQuickToInterpreterBridge());
+    } else {
+      method->SetEntryPointFromQuickCompiledCode(GetQuickGenericJniStub());
+    }
+  }
 
+  if (method->IsNative()) {
+    // Unregistering restores the dlsym lookup stub.
+    method->UnregisterNative();
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-cpp hljs"><span class="hljs-keyword">void</span> ClassLinker::LoadClass(Thread* self, <span class="hljs-keyword">const</span> DexFile&amp; dex_file,<br>                            <span class="hljs-keyword">const</span> DexFile::ClassDef&amp; dex_class_def,<br>                            Handle&lt;mirror::Class&gt; klass) {<br>  <span class="hljs-keyword">const</span> <span class="hljs-keyword">uint8_t</span>* class_data = dex_file.GetClassData(dex_class_def);<br>  <span class="hljs-keyword">if</span> (class_data == <span class="hljs-literal">nullptr</span>) {<br>    <span class="hljs-keyword">return</span>;  <span class="hljs-comment">// no fields or methods - for example a marker interface</span><br>  }<br>  <span class="hljs-keyword">bool</span> has_oat_class = <span class="hljs-literal">false</span>;<br>  <span class="hljs-keyword">if</span> (Runtime::Current()-&gt;IsStarted() &amp;&amp; !Runtime::Current()-&gt;IsAotCompiler()) {<br>    OatFile::OatClass oat_class = FindOatClass(dex_file, klass-&gt;GetDexClassDefIndex(),<br>                                               &amp;has_oat_class);<br>    <span class="hljs-keyword">if</span> (has_oat_class) {<br>      LoadClassMembers(self, dex_file, class_data, klass, &amp;oat_class);<br>    }<br>  }<br>  <span class="hljs-keyword">if</span> (!has_oat_class) {<br>    LoadClassMembers(self, dex_file, class_data, klass, <span class="hljs-literal">nullptr</span>);<br>  }<br>}<br></code></pre></div>
+    if (enter_interpreter) {
+      // We have a native method here without code. Then it should have either the generic JNI
+      // trampoline as entrypoint (non-static), or the resolution trampoline (static).
+      // TODO: this doesn't handle all the cases where trampolines may be installed.
+      const void* entry_point = method->GetEntryPointFromQuickCompiledCode();
+      DCHECK(IsQuickGenericJniStub(entry_point) || IsQuickResolutionStub(entry_point));
+    }
+  }
+}
+```
+前半部分新设置是解释执行还是本地代码执行：
 
-<p>这里分为，有oat和没有oat，最后都是调用 LoadClassMembers：</p>
+```cpp
+static bool NeedsInterpreter(ArtMethod* method, const void* quick_code)
+    SHARED_LOCKS_REQUIRED(Locks::mutator_lock_) {
+  if (quick_code == nullptr) {
+    // No code: need interpreter.
+    // May return true for native code, in the case of generic JNI
+    // DCHECK(!method->IsNative());
+    return true;
+  }
+  // If interpreter mode is enabled, every method (except native and proxy) must
+  // be run with interpreter.
+  return Runtime::Current()->GetInstrumentation()->InterpretOnly() &&
+         !method->IsNative() && !method->IsProxyMethod();
+}
+```
+由上可知，如果没有oat的话，肯定是解释执行，如果由oat则需要看是否设置了强制解释执行。回到LinkCode后半部分，主要是根据各种情况设置method的解释执行入口点，或者执行编译代码的入口点。
+说一下ArtMethod这个结构：
 
+```cpp
+class ArtMethod {
+  // Field order required by test "ValidateFieldOrderOfJavaCppUnionClasses". 
+  // The class we are a part of. 
+  GcRoot<mirror::Class> declaring_class_;
 
+  // Short cuts to declaring_class_->dex_cache_ member for fast compiled code access. 
+  GcRoot<mirror::PointerArray> dex_cache_resolved_methods_;
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-cpp hljs"><span class="hljs-keyword">void</span> ClassLinker::LoadClassMembers(Thread* self, <span class="hljs-keyword">const</span> DexFile&amp; dex_file,<br>                                   <span class="hljs-keyword">const</span> <span class="hljs-keyword">uint8_t</span>* class_data,<br>                                   Handle&lt;mirror::Class&gt; klass,<br>                                   <span class="hljs-keyword">const</span> OatFile::OatClass* oat_class) {<br>  {<br>    <span class="hljs-comment">// Note: We cannot have thread suspension until the field and method arrays are setup or else</span><br>    <span class="hljs-comment">// Class::VisitFieldRoots may miss some fields or methods.</span><br>    <span class="hljs-function">ScopedAssertNoThreadSuspension <span class="hljs-title">nts</span><span class="hljs-params">(self, __FUNCTION__)</span></span>;<br>    <span class="hljs-comment">// Load static fields.</span><br>    <span class="hljs-function">ClassDataItemIterator <span class="hljs-title">it</span><span class="hljs-params">(dex_file, class_data)</span></span>;<br>    <span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> num_sfields = it.NumStaticFields();<br>    ArtField* sfields = num_sfields != <span class="hljs-number">0</span> ? AllocArtFieldArray(self, num_sfields) : <span class="hljs-literal">nullptr</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; it.HasNextStaticField(); i++, it.Next()) {<br>      CHECK_LT(i, num_sfields);<br>      LoadField(it, klass, &amp;sfields[i]);<br>    }<br>    klass-&gt;SetSFields(sfields);<br>    klass-&gt;SetNumStaticFields(num_sfields);<br>    DCHECK_EQ(klass-&gt;NumStaticFields(), num_sfields);<br>    <span class="hljs-comment">// Load instance fields.</span><br>    <span class="hljs-keyword">const</span> <span class="hljs-keyword">size_t</span> num_ifields = it.NumInstanceFields();<br>    ArtField* ifields = num_ifields != <span class="hljs-number">0</span> ? AllocArtFieldArray(self, num_ifields) : <span class="hljs-literal">nullptr</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; it.HasNextInstanceField(); i++, it.Next()) {<br>      CHECK_LT(i, num_ifields);<br>      LoadField(it, klass, &amp;ifields[i]);<br>    }<br>    klass-&gt;SetIFields(ifields);<br>    klass-&gt;SetNumInstanceFields(num_ifields);<br>    DCHECK_EQ(klass-&gt;NumInstanceFields(), num_ifields);<br>    ArtMethod* <span class="hljs-keyword">const</span> direct_methods = (it.NumDirectMethods() != <span class="hljs-number">0</span>)<br>        ? AllocArtMethodArray(self, it.NumDirectMethods())<br>        : <span class="hljs-literal">nullptr</span>;<br>    ArtMethod* <span class="hljs-keyword">const</span> virtual_methods = (it.NumVirtualMethods() != <span class="hljs-number">0</span>)<br>        ? AllocArtMethodArray(self, it.NumVirtualMethods())<br>        : <span class="hljs-literal">nullptr</span>;<br>    {<br>      <span class="hljs-comment">// Used to get exclusion between with VisitNativeRoots so that no thread sees a length for</span><br>      <span class="hljs-comment">// one array with a pointer for a different array.</span><br>      <span class="hljs-function">WriterMutexLock <span class="hljs-title">mu</span><span class="hljs-params">(self, *Locks::classlinker_classes_lock_)</span></span>;<br>      <span class="hljs-comment">// Load methods.</span><br>      klass-&gt;SetDirectMethodsPtr(direct_methods);<br>      klass-&gt;SetNumDirectMethods(it.NumDirectMethods());<br>      klass-&gt;SetVirtualMethodsPtr(virtual_methods);<br>      klass-&gt;SetNumVirtualMethods(it.NumVirtualMethods());<br>    }<br>    <span class="hljs-keyword">size_t</span> class_def_method_index = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">uint32_t</span> last_dex_method_index = DexFile::kDexNoIndex;<br>    <span class="hljs-keyword">size_t</span> last_class_def_method_index = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; it.HasNextDirectMethod(); i++, it.Next()) {<br>      ArtMethod* method = klass-&gt;GetDirectMethodUnchecked(i, image_pointer_size_);<br>      LoadMethod(self, dex_file, it, klass, method);<br>      LinkCode(method, oat_class, class_def_method_index);<br>      <span class="hljs-keyword">uint32_t</span> it_method_index = it.GetMemberIndex();<br>      <span class="hljs-keyword">if</span> (last_dex_method_index == it_method_index) {<br>        <span class="hljs-comment">// duplicate case</span><br>        method-&gt;SetMethodIndex(last_class_def_method_index);<br>      } <span class="hljs-keyword">else</span> {<br>        method-&gt;SetMethodIndex(class_def_method_index);<br>        last_dex_method_index = it_method_index;<br>        last_class_def_method_index = class_def_method_index;<br>      }<br>      class_def_method_index++;<br>    }<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">size_t</span> i = <span class="hljs-number">0</span>; it.HasNextVirtualMethod(); i++, it.Next()) {<br>      ArtMethod* method = klass-&gt;GetVirtualMethodUnchecked(i, image_pointer_size_);<br>      LoadMethod(self, dex_file, it, klass, method);<br>      DCHECK_EQ(class_def_method_index, it.NumDirectMethods() + i);<br>      LinkCode(method, oat_class, class_def_method_index);<br>      class_def_method_index++;<br>    }<br>    DCHECK(!it.HasNext());<br>  }<br>  self-&gt;AllowThreadSuspension();<br>}<br></code></pre></div>
+  // Short cuts to declaring_class_->dex_cache_ member for fast compiled code access. 
+  GcRoot<mirror::ObjectArray<mirror::Class>> dex_cache_resolved_types_;
 
-<p>代码很长，大体就是前半部分加载class的静态域和实例域，后半部分先加载direct方法，再加载virtual方法。先调用LoadMethod方法初始化ArtMethod对象。</p>
+  // Access flags; low 16 bits are defined by spec. 
+  uint32_t access_flags_;
 
+  /* Dex file fields. The defining dex file is available via declaring_class_->dex_cache_ */
 
+  // Offset to the CodeItem. 
+  uint32_t dex_code_item_offset_;
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-cpp hljs"><span class="hljs-keyword">void</span> ClassLinker::LinkCode(ArtMethod* method, <span class="hljs-keyword">const</span> OatFile::OatClass* oat_class,<br>                           <span class="hljs-keyword">uint32_t</span> class_def_method_index) {<br>  Runtime* <span class="hljs-keyword">const</span> runtime = Runtime::Current();<br>  <span class="hljs-keyword">if</span> (runtime-&gt;IsAotCompiler()) {<br>    <span class="hljs-comment">// The following code only applies to a non-compiler runtime.</span><br>    <span class="hljs-keyword">return</span>;<br>  }<br>  <span class="hljs-comment">// Method shouldn't have already been linked.</span><br>  DCHECK(method-&gt;GetEntryPointFromQuickCompiledCode() == <span class="hljs-literal">nullptr</span>);<br>  <span class="hljs-keyword">if</span> (oat_class != <span class="hljs-literal">nullptr</span>) {<br>    <span class="hljs-comment">// Every kind of method should at least get an invoke stub from the oat_method.</span><br>    <span class="hljs-comment">// non-abstract methods also get their code pointers.</span><br>    <span class="hljs-keyword">const</span> OatFile::OatMethod oat_method = oat_class-&gt;GetOatMethod(class_def_method_index);<br>    oat_method.LinkMethod(method);<br>  }<br><br>  <span class="hljs-comment">// Install entry point from interpreter.</span><br>  <span class="hljs-keyword">bool</span> enter_interpreter = NeedsInterpreter(method, method-&gt;GetEntryPointFromQuickCompiledCode());<br>  <span class="hljs-keyword">if</span> (enter_interpreter &amp;&amp; !method-&gt;IsNative()) {<br>    method-&gt;SetEntryPointFromInterpreter(artInterpreterToInterpreterBridge);<br>  } <span class="hljs-keyword">else</span> {<br>    method-&gt;SetEntryPointFromInterpreter(artInterpreterToCompiledCodeBridge);<br>  }<br><br>  <span class="hljs-keyword">if</span> (method-&gt;IsAbstract()) {<br>    method-&gt;SetEntryPointFromQuickCompiledCode(GetQuickToInterpreterBridge());<br>    <span class="hljs-keyword">return</span>;<br>  }<br><br>  <span class="hljs-keyword">if</span> (method-&gt;IsStatic() &amp;&amp; !method-&gt;IsConstructor()) {<br>    <span class="hljs-comment">// For static methods excluding the class initializer, install the trampoline.</span><br>    <span class="hljs-comment">// It will be replaced by the proper entry point by ClassLinker::FixupStaticTrampolines</span><br>    <span class="hljs-comment">// after initializing class (see ClassLinker::InitializeClass method).</span><br>    method-&gt;SetEntryPointFromQuickCompiledCode(GetQuickResolutionStub());<br>  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (enter_interpreter) {<br>    <span class="hljs-keyword">if</span> (!method-&gt;IsNative()) {<br>      <span class="hljs-comment">// Set entry point from compiled code if there's no code or in interpreter only mode.</span><br>      method-&gt;SetEntryPointFromQuickCompiledCode(GetQuickToInterpreterBridge());<br>    } <span class="hljs-keyword">else</span> {<br>      method-&gt;SetEntryPointFromQuickCompiledCode(GetQuickGenericJniStub());<br>    }<br>  }<br><br>  <span class="hljs-keyword">if</span> (method-&gt;IsNative()) {<br>    <span class="hljs-comment">// Unregistering restores the dlsym lookup stub.</span><br>    method-&gt;UnregisterNative();<br><br>    <span class="hljs-keyword">if</span> (enter_interpreter) {<br>      <span class="hljs-comment">// We have a native method here without code. Then it should have either the generic JNI</span><br>      <span class="hljs-comment">// trampoline as entrypoint (non-static), or the resolution trampoline (static).</span><br>      <span class="hljs-comment">// <span class="hljs-doctag">TODO:</span> this doesn't handle all the cases where trampolines may be installed.</span><br>      <span class="hljs-keyword">const</span> <span class="hljs-keyword">void</span>* entry_point = method-&gt;GetEntryPointFromQuickCompiledCode();<br>      DCHECK(IsQuickGenericJniStub(entry_point) || IsQuickResolutionStub(entry_point));<br>    }<br>  }<br>}<br></code></pre></div>
+  // Index into method_ids of the dex file associated with this method. 
+  uint32_t dex_method_index_;
 
-<p>前半部分新设置是解释执行还是本地代码执行：</p>
+  /* End of dex file fields. */
 
+  // Entry within a dispatch table for this method. For static/direct methods the index is into 
+  // the declaringClass.directMethods, for virtual methods the vtable and for interface methods the 
+  // ifTable. 
+  uint32_t method_index_;
 
+  // Fake padding field gets inserted here. 
+  // Must be the last fields in the method. 
+  // PACKED(4) is necessary for the correctness of 
+  // RoundUp(OFFSETOF_MEMBER(ArtMethod, ptr_sized_fields_), pointer_size). 
+  struct PACKED(4) PtrSizedFields {
 
-<div class="language-cpp highlighter-rouge"><pre class="highlight"><code class="language-cpp hljs"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">bool</span> <span class="hljs-title">NeedsInterpreter</span><span class="hljs-params">(ArtMethod* method, <span class="hljs-keyword">const</span> <span class="hljs-keyword">void</span>* quick_code)</span><br>    <span class="hljs-title">SHARED_LOCKS_REQUIRED</span><span class="hljs-params">(Locks::mutator_lock_)</span> </span>{<br>  <span class="hljs-keyword">if</span> (quick_code == <span class="hljs-literal">nullptr</span>) {<br>    <span class="hljs-comment">// No code: need interpreter.</span><br>    <span class="hljs-comment">// May return true for native code, in the case of generic JNI</span><br>    <span class="hljs-comment">// DCHECK(!method-&gt;IsNative());</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  }<br>  <span class="hljs-comment">// If interpreter mode is enabled, every method (except native and proxy) must</span><br>  <span class="hljs-comment">// be run with interpreter.</span><br>  <span class="hljs-keyword">return</span> Runtime::Current()-&gt;GetInstrumentation()-&gt;InterpretOnly() &amp;&amp;<br>         !method-&gt;IsNative() &amp;&amp; !method-&gt;IsProxyMethod();<br>}<br></code></pre></div>
+    // Method dispatch from the interpreter invokes this pointer which may cause a bridge into 
+    // compiled code. 
+    void* entry_point_from_interpreter_;
 
-<p>由上可知，如果没有oat的话，肯定是解释执行，如果由oat则需要看是否设置了强制解释执行。回到LinkCode后半部分，主要是根据各种情况设置method的解释执行入口点，或者执行编译代码的入口点。</p>
+    // Pointer to JNI function registered to this method, or a function to resolve the JNI function. 
+    void* entry_point_from_jni_;
+
+    // Method dispatch from quick compiled code invokes this pointer which may cause bridging into 
+    // the interpreter. 
+    void* entry_point_from_quick_compiled_code_;
+  } ptr_sized_fields_;
+}
+```
+`dex_cache_resolved_methods_`是一个指针数组，指向已经解析的过的ArtMethod，假如一个函数被调用时没有被解析过，由数组dex_cache_resolved_methods_获取并执行的是resolution_method_。待解析完成，得到callee的实际ArtMethod后，再去执行实际的代码；此外，还会将解析得到的ArtMethod填充到数组dex_cache_resolved_methods_的相应位置。这样，之后callee再被调用时，便无需再次进行方法解析。这跟plt和got的原理时一样的。
