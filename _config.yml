@@ -5,6 +5,7 @@ author: imcczy
 email: imcczyh@gmail.com
 permalink: :title.html
 markdown: kramdown
+highlighter: rouge
 kramdown:
   input: GFM
   syntax_highlighter: rouge
