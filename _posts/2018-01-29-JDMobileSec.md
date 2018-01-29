@@ -58,7 +58,7 @@ IDA打开看看，init段存在一堆函数：
 `sub_B908`是字符串解密，目测每一个字符对应一个4字节的int，且一一对应，这一部分应该是可以通过脚本恢复出来的。`sub_CABE`用于判断文件是否存在，一旦存在就退出程序。`sub_D1A4`和`sub_D01C`是常见的调试端口检测以及`Tracepid`字段的检测。`sub_D300`功能未知，反正是开一个线程用于反调试，直接nop掉了。
 
 ### sub_C4D4
-`sub_C4D4`函数是反Xposed的核心逻辑，本来以为会是什么黑科技，看下来发现是ç存在一个名为`disablehooks`的静态字段，功能跟其字面意思一样。通过反射把值设为`false`，就可以禁用对本App的Xposed Hook功能了。需要注意的是`XposedBridge`类的`classloader`是要通过`getSystemClassLoader`获取的，很神奇，这块需要再深入看看。Native调用Java的代码真的是又臭又长，就不贴了。
+`sub_C4D4`函数是反Xposed的核心逻辑，本来以为会是什么黑科技，看下来发现是`XposedBridge`类存在一个名为`disablehooks`的静态字段，功能跟其字面意思一样。通过反射把值设为`false`，就可以禁用对本App的Xposed Hook功能了。需要注意的是`XposedBridge`类的`classloader`是要通过`getSystemClassLoader`获取的，很神奇，这块需要再深入看看。Native调用Java的代码真的是又臭又长，就不贴了。
 
 ### sub_440C
 `sub_440C`的主要功能是签名校验，不知道为啥在`Jni_OnLoad`里调用了两次。没仔细看。
